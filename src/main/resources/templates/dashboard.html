@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard | Women Skill Training Portal</title>
+  <meta name="description" content="Your WSTP learner dashboard: courses, progress and skill programs.">
+
+  <style>
+    /* ============ TOKENS (shared with home, login, register) ============ */
+    :root {
+      --primary: #6D3BD1;
+      --primary-dark: #5A2DB5;
+      --dark: #2A1748;
+      --soft: #F3EEFF;
+      --peach: #F4A261;
+      --peach-soft: #FFF1E8;
+      --bg: #FBF9FF;
+      --text: #241A35;
+      --muted: #716A7D;
+      --white: #FFFFFF;
+      --line: #E6DFF2;
+      --ok: #1E7A4C;
+      --ok-bg: #E9F8F0;
+      --font-head: Georgia, "Times New Roman", serif;
+      --font-body: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      --side-w: 264px;
+      --top-h: 72px;
+      --shadow-sm: 0 2px 10px rgba(42, 23, 72, .06);
+      --shadow-md: 0 14px 34px rgba(42, 23, 72, .11);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: calc(var(--top-h) + 16px); }
+    body { font-family: var(--font-body); color: var(--text); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    button { font-family: inherit; }
+    svg.i { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    :focus-visible { outline: 3px solid var(--peach); outline-offset: 2px; border-radius: 8px; }
+    h1, h2, h3 { font-family: var(--font-head); color: var(--dark); line-height: 1.2; }
+
+    /* ============ SIDEBAR ============ */
+    .sidebar { position: fixed; inset: 0 auto 0 0; width: var(--side-w); background: var(--white); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 20px 16px; z-index: 60; transition: transform .3s ease; }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 4px 8px 22px; }
+    .brand-logo { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 1.3rem; display: grid; place-items: center; box-shadow: inset 0 0 0 3px var(--peach); flex: none; }
+    .brand-text { line-height: 1.15; }
+    .brand-text strong { display: block; font-family: var(--font-head); font-size: 1.15rem; color: var(--dark); letter-spacing: .04em; }
+    .brand-text span { font-size: .68rem; color: var(--muted); }
+    .side-nav { flex: 1; display: grid; gap: 4px; align-content: start; }
+    .side-nav a, .side-nav button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; border-radius: 12px; border: 0; background: transparent; color: var(--muted); font-weight: 500; font-size: .95rem; cursor: pointer; text-align: left; transition: background .2s, color .2s; }
+    .side-nav .i { font-size: 1.2rem; }
+    .side-nav a:hover, .side-nav button:hover { background: var(--soft); color: var(--primary); }
+    .side-nav a.active { background: var(--primary); color: #fff; box-shadow: 0 8px 18px rgba(109, 59, 209, .28); }
+    .side-foot { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+    .side-foot button:hover { background: #FDECEF; color: #B42336; }
+    .overlay { position: fixed; inset: 0; background: rgba(36, 26, 53, .45); z-index: 55; opacity: 0; visibility: hidden; transition: opacity .3s, visibility .3s; }
+    .overlay.show { opacity: 1; visibility: visible; }
+
+    /* ============ MAIN + TOPBAR ============ */
+    .main { margin-left: var(--side-w); min-height: 100vh; display: flex; flex-direction: column; }
+    .topbar { position: sticky; top: 0; z-index: 50; height: var(--top-h); background: rgba(255, 255, 255, .88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; gap: 16px; }
+    .top-left { display: flex; align-items: center; gap: 14px; }
+    .icon-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--white); color: var(--dark); font-size: 1.25rem; display: grid; place-items: center; cursor: pointer; position: relative; transition: background .2s, color .2s; }
+    .icon-btn:hover { background: var(--soft); color: var(--primary); }
+    .menu-btn { display: none; }
+    .page-title { font-family: var(--font-head); font-size: 1.3rem; color: var(--dark); }
+    .top-right { display: flex; align-items: center; gap: 14px; }
+    .dot { position: absolute; top: 9px; right: 10px; width: 9px; height: 9px; border-radius: 50%; background: var(--peach); border: 2px solid #fff; }
+    .menu-wrap { position: relative; }
+    .user-btn { display: flex; align-items: center; gap: 12px; padding: 5px 12px 5px 5px; border-radius: 999px; border: 1px solid var(--line); background: var(--white); cursor: pointer; transition: background .2s; }
+    .user-btn:hover { background: var(--soft); }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; font-weight: 700; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--peach); }
+    .user-meta { text-align: left; line-height: 1.2; }
+    .user-meta strong { display: block; font-size: .9rem; color: var(--dark); }
+    .user-meta span { font-size: .75rem; color: var(--muted); }
+    .user-btn .i.chev { font-size: .9rem; color: var(--muted); }
+    .dropdown { position: absolute; right: 0; top: calc(100% + 10px); min-width: 230px; background: var(--white); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-md); padding: 8px; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .2s, transform .2s, visibility .2s; z-index: 70; }
+    .dropdown.open { opacity: 1; visibility: visible; transform: none; }
+    .dropdown .dd-title { padding: 8px 12px; font-weight: 600; font-size: .85rem; color: var(--dark); border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+    .dropdown button, .dropdown a { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 0; background: transparent; border-radius: 10px; font-size: .9rem; color: var(--text); cursor: pointer; text-align: left; }
+    .dropdown button:hover, .dropdown a:hover { background: var(--soft); color: var(--primary); }
+    .note { align-items: flex-start !important; }
+    .note small { display: block; color: var(--muted); font-size: .76rem; }
+    .note .n-ico { width: 32px; height: 32px; border-radius: 9px; background: var(--soft); color: var(--primary); display: grid; place-items: center; flex: none; }
+
+    .content { width: min(1120px, 100%); margin-inline: auto; padding: 32px; flex: 1; }
+    section.block { margin-top: 44px; }
+    .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .sec-head h2 { font-size: 1.55rem; }
+    .sec-head p { color: var(--muted); font-size: .93rem; }
+
+    /* ============ BUTTONS ============ */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border-radius: 12px; font-weight: 600; font-size: .92rem; border: 1.5px solid transparent; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; box-shadow: 0 8px 20px rgba(109, 59, 209, .28); }
+    .btn-primary:hover { box-shadow: 0 12px 26px rgba(109, 59, 209, .36); }
+    .btn-outline { border-color: var(--primary); color: var(--primary); background: transparent; }
+    .btn-outline:hover { background: var(--soft); }
+    .btn-peach { background: var(--peach); color: var(--dark); }
+    .btn-peach:hover { box-shadow: 0 10px 22px rgba(244, 162, 97, .42); }
+    .btn-block { width: 100%; }
+
+    /* ============ WELCOME ============ */
+    .welcome { position: relative; overflow: hidden; display: grid; grid-template-columns: 1.3fr .7fr; gap: 24px; align-items: center; padding: 40px; border-radius: 24px; border: 1px solid var(--line); background:
+      radial-gradient(420px 260px at 100% 0%, rgba(244, 162, 97, .22), transparent 70%),
+      linear-gradient(120deg, var(--soft), var(--white)); box-shadow: var(--shadow-sm); }
+    .welcome h1 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); }
+    .welcome p { color: var(--muted); margin: 12px 0 24px; max-width: 480px; }
+    .w-art { position: relative; height: 190px; }
+    .w-art .disc { position: absolute; inset: 10px 10px 10px 30px; border-radius: 50%; background: var(--primary); }
+    .w-art .disc::after { content: ""; position: absolute; width: 70px; height: 70px; border-radius: 50%; background: var(--peach); right: -6px; top: 8px; }
+    .w-art .cap { position: absolute; left: 50%; top: 50%; transform: translate(-48%, -50%); font-size: 6.5rem; color: #fff; stroke-width: 1.4; animation: floaty 6s ease-in-out infinite; }
+    .w-chip { position: absolute; background: var(--white); border-radius: 12px; padding: 8px 12px; font-size: .75rem; font-weight: 600; color: var(--dark); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 8px; animation: floaty 7s ease-in-out infinite; }
+    .w-chip .i { color: var(--primary); font-size: 1.05rem; }
+    .w-chip.c1 { left: -4px; top: 18px; }
+    .w-chip.c2 { right: -2px; bottom: 14px; animation-delay: -3s; }
+    .w-chip.c2 .i { color: #C0662A; }
+    @keyframes floaty { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+
+    /* ============ STATS ============ */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 24px; }
+    .stat { background: var(--white); border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: var(--shadow-sm); transition: transform .3s, box-shadow .3s; }
+    .stat:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .s-ico { width: 46px; height: 46px; border-radius: 13px; background: var(--soft); color: var(--primary); font-size: 1.35rem; display: grid; place-items: center; }
+    .stat:nth-child(even) .s-ico { background: var(--peach-soft); color: #C0662A; }
+    .stat b { display: block; font-family: var(--font-head); font-size: 2.2rem; color: var(--dark); line-height: 1.1; }
+    .stat span.lbl { color: var(--muted); font-size: .9rem; }
+    .mini { height: 6px; border-radius: 6px; background: var(--soft); margin-top: 14px; overflow: hidden; }
+    .mini i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--primary); transition: width 1.2s ease; }
+    .stat:nth-child(even) .mini i { background: var(--peach); }
+
+    /* ============ COURSE + PROGRAM CARDS ============ */
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; transition: transform .3s, box-shadow .3s, border-color .3s; }
+    .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: #D8C9EE; }
+    .thumb { height: 104px; display: grid; place-items: center; font-size: 2.6rem; color: #fff; background: linear-gradient(135deg, var(--primary), #4A248F); position: relative; }
+    .thumb.t2 { background: linear-gradient(135deg, #8A57E0, var(--primary)); }
+    .thumb.t3 { background: linear-gradient(135deg, var(--peach), #E58A4B); color: var(--dark); }
+    .thumb::after { content: ""; position: absolute; width: 90px; height: 90px; border-radius: 50%; background: rgba(255, 255, 255, .12); right: -20px; top: -30px; }
+    .card-body { padding: 22px; display: flex; flex-direction: column; flex: 1; }
+    .card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    .card p { color: var(--muted); font-size: .9rem; flex: 1; margin-bottom: 16px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--primary); }
+    .status.done { background: var(--ok-bg); color: var(--ok); }
+    .prog-row { display: flex; justify-content: space-between; align-items: center; margin: 14px 0 8px; font-size: .85rem; }
+    .prog-row strong { color: var(--dark); }
+    .bar { height: 8px; border-radius: 8px; background: var(--soft); overflow: hidden; margin-bottom: 18px; }
+    .bar i { display: block; height: 100%; width: 0; border-radius: 8px; background: var(--primary); transition: width 1.2s ease; }
+    .bar.done i { background: var(--ok); }
+    .meta { display: flex; gap: 14px; flex-wrap: wrap; font-size: .8rem; color: var(--muted); margin-bottom: 16px; }
+    .meta span { display: inline-flex; align-items: center; gap: 6px; }
+    .meta .i { color: var(--primary); }
+    .p-ico { width: 50px; height: 50px; border-radius: 14px; background: var(--soft); color: var(--primary); font-size: 1.5rem; display: grid; place-items: center; margin-bottom: 14px; transition: background .3s, color .3s; }
+    .card:nth-child(even) .p-ico { background: var(--peach-soft); color: #C0662A; }
+    .card:hover .p-ico { background: var(--primary); color: #fff; }
+
+    /* ============ PROGRESS ============ */
+    .progress-panel { display: grid; grid-template-columns: .8fr 1.2fr; gap: 32px; align-items: center; background: var(--white); border: 1px solid var(--line); border-radius: 22px; padding: 36px; box-shadow: var(--shadow-sm); }
+    .ring { width: 220px; height: 220px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center; background: conic-gradient(var(--primary) 0deg, var(--soft) 0deg); }
+    .ring-inner { width: 168px; height: 168px; border-radius: 50%; background: var(--white); display: grid; place-items: center; text-align: center; box-shadow: inset 0 0 0 1px var(--line); }
+    .ring-inner b { font-family: var(--font-head); font-size: 2.8rem; color: var(--dark); line-height: 1; display: block; }
+    .ring-inner span { font-size: .8rem; color: var(--muted); }
+    .p-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .p-stat { padding: 18px; border-radius: 16px; background: var(--bg); border: 1px solid var(--line); }
+    .p-stat .i { font-size: 1.4rem; color: var(--primary); margin-bottom: 8px; }
+    .p-stat:nth-child(3) .i { color: #C0662A; }
+    .p-stat b { display: block; font-family: var(--font-head); font-size: 1.7rem; color: var(--dark); line-height: 1.1; }
+    .p-stat span { font-size: .82rem; color: var(--muted); }
+    .week { display: flex; gap: 8px; margin-top: 22px; align-items: center; flex-wrap: wrap; }
+    .week small { color: var(--muted); font-size: .8rem; margin-right: 6px; }
+    .week i { width: 30px; height: 30px; border-radius: 50%; background: var(--soft); color: var(--muted); font-style: normal; font-size: .7rem; font-weight: 600; display: grid; place-items: center; }
+    .week i.on { background: var(--primary); color: #fff; }
+
+    /* ============ ACTIVITY ============ */
+    .timeline { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 14px 28px; box-shadow: var(--shadow-sm); }
+    .t-item { display: flex; gap: 18px; padding: 18px 0; position: relative; }
+    .t-item + .t-item { border-top: 1px solid var(--line); }
+    .t-ico { width: 42px; height: 42px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); display: grid; place-items: center; font-size: 1.2rem; flex: none; }
+    .t-ico.start { background: var(--soft); color: var(--primary); }
+    .t-item strong { display: block; color: var(--dark); font-size: .96rem; }
+    .t-item span { font-size: .85rem; color: var(--muted); }
+    .t-time { margin-left: auto; font-size: .8rem; color: var(--muted); white-space: nowrap; padding-top: 2px; }
+
+    /* ============ MOTIVATION ============ */
+    .banner { position: relative; overflow: hidden; text-align: center; padding: 64px 28px; border-radius: 24px; color: #fff; background: linear-gradient(135deg, var(--dark), #3B2268); }
+    .banner::before { content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%; background: var(--peach); opacity: .16; left: -80px; bottom: -110px; }
+    .banner::after { content: ""; position: absolute; width: 200px; height: 200px; border-radius: 50%; border: 2px dashed rgba(255, 255, 255, .16); right: -50px; top: -60px; }
+    .banner h2 { color: #fff; font-size: clamp(2rem, 4vw, 2.8rem); position: relative; }
+    .banner p { color: #D3C9E0; max-width: 520px; margin: 14px auto 28px; position: relative; }
+    .banner .btn { position: relative; }
+
+    /* ============ FOOTER ============ */
+    .footer { border-top: 1px solid var(--line); background: var(--white); padding: 28px 32px; }
+    .foot-in { width: min(1120px, 100%); margin-inline: auto; display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .foot-in strong { font-family: var(--font-head); color: var(--dark); display: block; }
+    .foot-in p { font-size: .85rem; color: var(--muted); }
+    .foot-links { display: flex; gap: 22px; font-size: .9rem; color: var(--muted); }
+    .foot-links a:hover { color: var(--primary); }
+    .copy { width: min(1120px, 100%); margin: 16px auto 0; font-size: .8rem; color: var(--muted); }
+
+    /* ============ TOAST ============ */
+    .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: var(--dark); color: #fff; padding: 13px 20px; border-radius: 12px; font-size: .92rem; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-md); opacity: 0; visibility: hidden; transition: opacity .3s, transform .3s, visibility .3s; z-index: 100; max-width: 92vw; }
+    .toast.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .toast .i { color: var(--peach); font-size: 1.2rem; }
+
+    /* ============ REVEAL ============ */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 1100px) {
+      .grid3 { grid-template-columns: repeat(2, 1fr); }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .progress-panel { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); box-shadow: var(--shadow-md); }
+      .sidebar.open { transform: none; }
+      .main { margin-left: 0; }
+      .menu-btn { display: grid; }
+      .topbar { padding: 0 18px; }
+      .content { padding: 22px 18px; }
+      .welcome { grid-template-columns: 1fr; padding: 30px 24px; }
+      .w-art { display: none; }
+    }
+    @media (max-width: 640px) {
+      .user-meta, .user-btn .chev { display: none; }
+      .user-btn { padding: 4px; }
+      .page-title { font-size: 1.1rem; }
+      .grid3 { grid-template-columns: 1fr; }
+      .stats { gap: 12px; }
+      .stat { padding: 16px; }
+      .stat b { font-size: 1.7rem; }
+      .p-stats { grid-template-columns: 1fr; }
+      .progress-panel { padding: 24px 18px; }
+      .ring { width: 190px; height: 190px; }
+      .ring-inner { width: 144px; height: 144px; }
+      .welcome .btn, .banner .btn { width: 100%; }
+      .t-item { flex-wrap: wrap; }
+      .t-time { margin-left: 60px; width: 100%; }
+      .timeline { padding: 6px 18px; }
+      .dropdown { position: fixed; left: 12px; right: 12px; top: calc(var(--top-h) + 6px); min-width: 0; }
+      .footer { padding: 24px 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ============ ICON SPRITE ============ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-4.8-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.2-8 11-8 11z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.500" height="7.500" rx="2"/><rect x="13.500" y="3" width="7.500" height="7.500" rx="2"/><rect x="3" y="13.500" width="7.500" height="7.500" rx="2"/><rect x="13.500" y="13.500" width="7.500" height="7.500" rx="2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5M9 7h6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.500 14L7 22l5-3 5 3-1.500-8"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.500 20.500a7.500 7.500 0 0 1 15 0"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.500v3M12 18.500v3M2.500 12h3M18.500 12h3M5.300 5.300l2.100 2.100M16.600 16.600l2.100 2.100M5.300 18.700l2.100-2.100M16.600 7.400l2.100-2.100"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.500 7.500 2.500 7.500h-17S6 15 6 9zM10 20a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+    <symbol id="i-mega" viewBox="0 0 24 24"><path d="M3 10v4a1 1 0 0 0 1 1h3l8 4V5L7 9H4a1 1 0 0 0-1 1zM19 9a4 4 0 0 1 0 6"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M5 15c-1 1-1.500 4-1.500 4s3-.5 4-1.500M12 15l-3-3a22 22 0 0 1 8-9c2 0 4 0 4 0s0 2-1 4a22 22 0 0 1-8 8z"/><circle cx="15.500" cy="8.500" r="1.500"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.500 9a3 3 0 0 0-2.500-1.200c-1.700 0-2.800.9-2.800 2s1 1.600 2.800 2 2.800.9 2.800 2-1.100 2-2.800 2A3 3 0 0 1 9.500 15M12 6.500v1.300M12 16.200v1.300"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.700 7L4 20l1.200-4.600A8 8 0 1 1 21 12z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.500l4.500 4.500L19 7.500"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-4-3-6-4-10-3 2-5 5-5 8-1-1-2-2-2-4-2 2-3 4-3 6a7 7 0 0 0 7 7z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.500v15l12-7.500z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5zM6 11.500V16c0 1.500 2.700 3 6 3s6-1.500 6-3v-4.500M22 9v6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.500v.01"/></symbol>
+  </svg>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a th:href="@{/}" href="/" class="brand" aria-label="WSTP home">
+      <span class="brand-logo" aria-hidden="true"><svg class="i"><use href="#i-heart"/></svg></span>
+      <span class="brand-text"><strong>WSTP</strong><span>Women Skill Training Portal</span></span>
+    </a>
+
+    <nav class="side-nav" id="sideNav">
+      <a href="#top" class="active" data-spy="top" aria-current="page"><svg class="i"><use href="#i-home"/></svg>Dashboard</a>
+      <a href="#programs" data-spy="programs"><svg class="i"><use href="#i-grid"/></svg>Skill Programs</a>
+      <a href="#learning" data-spy="learning"><svg class="i"><use href="#i-book"/></svg>My Learning</a>
+      <a href="#progress" data-spy="progress"><svg class="i"><use href="#i-chart"/></svg>My Progress</a>
+      <button type="button" data-soon="Certificates"><svg class="i"><use href="#i-award"/></svg>Certificates</button>
+      <button type="button" data-soon="Profile"><svg class="i"><use href="#i-user"/></svg>Profile</button>
+      <button type="button" data-soon="Settings"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
+    </nav>
+
+    <div class="side-foot">
+      <button type="button" class="logout-btn"><svg class="i"><use href="#i-logout"/></svg>Logout</button>
+    </div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="main" id="top">
+    <!-- ============ TOP NAVBAR ============ -->
+    <header class="topbar">
+      <div class="top-left">
+        <button type="button" class="icon-btn menu-btn" id="menuBtn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
+          <svg class="i"><use href="#i-menu"/></svg>
+        </button>
+        <span class="page-title">Dashboard</span>
+      </div>
+
+      <div class="top-right">
+        <!-- Notifications -->
+        <div class="menu-wrap">
+          <button type="button" class="icon-btn" id="notifBtn" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+            <svg class="i"><use href="#i-bell"/></svg><span class="dot"></span>
+          </button>
+          <div class="dropdown" id="notifMenu" role="menu" aria-label="Notifications">
+            <div class="dd-title">Notifications</div>
+            <button type="button" class="note" role="menuitem"><span class="n-ico"><svg class="i"><use href="#i-check"/></svg></span><span>Module completed<small>Digital Literacy - Module 3</small></span></button>
+            <button type="button" class="note" role="menuitem"><span class="n-ico"><svg class="i"><use href="#i-flame"/></svg></span><span>7 day streak<small>Keep your learning going</small></span></button>
+            <button type="button" class="note" role="menuitem"><span class="n-ico"><svg class="i"><use href="#i-book"/></svg></span><span>New program available<small>Digital Marketing</small></span></button>
+          </div>
+        </div>
+
+        <!-- Profile -->
+        <div class="menu-wrap">
+          <button type="button" class="user-btn" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu">
+            <span class="avatar" aria-hidden="true">S</span>
+            <span class="user-meta"><strong>Sneha Test</strong><span>Learner</span></span>
+            <svg class="i chev"><use href="#i-chev"/></svg>
+          </button>
+          <div class="dropdown" id="userMenu" role="menu" aria-label="Profile menu">
+            <div class="dd-title">Sneha Test &middot; Learner</div>
+            <button type="button" role="menuitem" data-soon="Profile"><svg class="i"><use href="#i-user"/></svg>My Profile</button>
+            <button type="button" role="menuitem" data-soon="Settings"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
+            <button type="button" role="menuitem" class="logout-btn"><svg class="i"><use href="#i-logout"/></svg>Logout</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ============ WELCOME ============ -->
+      <section class="welcome reveal" aria-labelledby="welcome-title">
+        <div>
+          <h1 id="welcome-title">Welcome back, Sneha! 👋</h1>
+          <p>Continue your learning journey, build new skills and take the next step toward your goals.</p>
+          <a href="#programs" class="btn btn-primary">Explore Skill Programs <svg class="i"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="w-art" aria-hidden="true">
+          <div class="disc"></div>
+          <svg class="i cap"><use href="#i-cap"/></svg>
+          <div class="w-chip c1"><svg class="i"><use href="#i-award"/></svg>Skill badge earned</div>
+          <div class="w-chip c2"><svg class="i"><use href="#i-flame"/></svg>7 day streak</div>
+        </div>
+      </section>
+
+      <!-- ============ STATS ============ -->
+      <section class="stats" aria-label="Learning statistics">
+        <article class="stat reveal">
+          <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-book"/></svg></span></div>
+          <b data-count="3">0</b><span class="lbl">Enrolled Programs</span>
+          <div class="mini"><i data-w="100"></i></div>
+        </article>
+        <article class="stat reveal">
+          <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-award"/></svg></span></div>
+          <b data-count="1">0</b><span class="lbl">Completed Programs</span>
+          <div class="mini"><i data-w="33"></i></div>
+        </article>
+        <article class="stat reveal">
+          <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-play"/></svg></span></div>
+          <b data-count="2">0</b><span class="lbl">In Progress</span>
+          <div class="mini"><i data-w="67"></i></div>
+        </article>
+        <article class="stat reveal">
+          <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-clock"/></svg></span></div>
+          <b data-count="24">0</b><span class="lbl">Learning Hours</span>
+          <div class="mini"><i data-w="60"></i></div>
+        </article>
+      </section>
+
+      <!-- ============ MY LEARNING ============ -->
+      <section class="block" id="learning" aria-labelledby="learning-title">
+        <div class="sec-head reveal"><div><h2 id="learning-title">My Learning</h2><p>Pick up right where you left off.</p></div></div>
+        <div class="grid3">
+          <article class="card reveal">
+            <div class="thumb" aria-hidden="true"><svg class="i"><use href="#i-monitor"/></svg></div>
+            <div class="card-body">
+              <span class="status"><svg class="i"><use href="#i-play"/></svg>In Progress</span>
+              <h3 style="margin-top:12px">Digital Literacy</h3>
+              <p>Essential computer, internet and digital tool skills.</p>
+              <div class="prog-row"><span>Progress</span><strong>75%</strong></div>
+              <div class="bar" role="progressbar" aria-label="Digital Literacy progress" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"><i data-w="75"></i></div>
+              <button type="button" class="btn btn-primary btn-block" data-soon="Course module">Continue Learning</button>
+            </div>
+          </article>
+          <article class="card reveal">
+            <div class="thumb t2" aria-hidden="true"><svg class="i"><use href="#i-code"/></svg></div>
+            <div class="card-body">
+              <span class="status"><svg class="i"><use href="#i-play"/></svg>In Progress</span>
+              <h3 style="margin-top:12px">Web Development Fundamentals</h3>
+              <p>HTML, CSS and JavaScript basics for building websites.</p>
+              <div class="prog-row"><span>Progress</span><strong>45%</strong></div>
+              <div class="bar" role="progressbar" aria-label="Web Development Fundamentals progress" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"><i data-w="45"></i></div>
+              <button type="button" class="btn btn-primary btn-block" data-soon="Course module">Continue Learning</button>
+            </div>
+          </article>
+          <article class="card reveal">
+            <div class="thumb t3" aria-hidden="true"><svg class="i"><use href="#i-coin"/></svg></div>
+            <div class="card-body">
+              <span class="status done"><svg class="i"><use href="#i-check"/></svg>Completed</span>
+              <h3 style="margin-top:12px">Financial Literacy</h3>
+              <p>Saving, budgeting and banking essentials for independence.</p>
+              <div class="prog-row"><span>Progress</span><strong>100%</strong></div>
+              <div class="bar done" role="progressbar" aria-label="Financial Literacy progress" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><i data-w="100"></i></div>
+              <button type="button" class="btn btn-outline btn-block" data-soon="Certificate">View Certificate</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ SKILL PROGRAMS ============ -->
+      <section class="block" id="programs" aria-labelledby="programs-title">
+        <div class="sec-head reveal"><div><h2 id="programs-title">Explore Skill Programs</h2><p>Build practical skills that can create real opportunities.</p></div></div>
+        <div class="grid3">
+          <article class="card reveal"><div class="card-body">
+            <span class="p-ico"><svg class="i"><use href="#i-monitor"/></svg></span>
+            <h3>Digital Literacy</h3><p>Learn essential digital skills for everyday life and employment.</p>
+            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>4 weeks</span></div>
+            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
+          </div></article>
+          <article class="card reveal"><div class="card-body">
+            <span class="p-ico"><svg class="i"><use href="#i-code"/></svg></span>
+            <h3>Web Development</h3><p>Learn HTML, CSS, JavaScript and modern web development fundamentals.</p>
+            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Intermediate</span><span><svg class="i"><use href="#i-clock"/></svg>8 weeks</span></div>
+            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
+          </div></article>
+          <article class="card reveal"><div class="card-body">
+            <span class="p-ico"><svg class="i"><use href="#i-mega"/></svg></span>
+            <h3>Digital Marketing</h3><p>Build skills in social media, branding and online marketing.</p>
+            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>6 weeks</span></div>
+            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
+          </div></article>
+          <article class="card reveal"><div class="card-body">
+            <span class="p-ico"><svg class="i"><use href="#i-rocket"/></svg></span>
+            <h3>Entrepreneurship</h3><p>Learn how to turn ideas into sustainable business opportunities.</p>
+            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Intermediate</span><span><svg class="i"><use href="#i-clock"/></svg>8 weeks</span></div>
+            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
+          </div></article>
+          <article class="card reveal"><div class="card-body">
+            <span class="p-ico"><svg class="i"><use href="#i-coin"/></svg></span>
+            <h3>Financial Literacy</h3><p>Understand saving, budgeting, banking and financial planning.</p>
+            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>5 weeks</span></div>
+            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
+          </div></article>
+          <article class="card reveal"><div class="card-body">
+            <span class="p-ico"><svg class="i"><use href="#i-chat"/></svg></span>
+            <h3>Communication Skills</h3><p>Improve communication, confidence, presentation and workplace skills.</p>
+            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>4 weeks</span></div>
+            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
+          </div></article>
+        </div>
+      </section>
+
+      <!-- ============ LEARNING PROGRESS ============ -->
+      <section class="block" id="progress" aria-labelledby="progress-title">
+        <div class="sec-head reveal"><div><h2 id="progress-title">Your Learning Progress</h2><p>A snapshot of how far you have come.</p></div></div>
+        <div class="progress-panel reveal">
+          <div class="ring" id="ring" role="img" aria-label="Overall progress 68 percent">
+            <div class="ring-inner"><div><b id="ringNum">0%</b><span>Overall Progress</span></div></div>
+          </div>
+          <div>
+            <div class="p-stats">
+              <div class="p-stat"><svg class="i"><use href="#i-check"/></svg><b>12</b><span>Lessons Completed</span></div>
+              <div class="p-stat"><svg class="i"><use href="#i-book"/></svg><b>6</b><span>Lessons Remaining</span></div>
+              <div class="p-stat"><svg class="i"><use href="#i-flame"/></svg><b>7</b><span>Day Learning Streak</span></div>
+            </div>
+            <div class="week" aria-label="This week's activity">
+              <small>This week</small>
+              <i class="on">M</i><i class="on">T</i><i class="on">W</i><i class="on">T</i><i class="on">F</i><i class="on">S</i><i class="on">S</i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RECENT ACTIVITY ============ -->
+      <section class="block" aria-labelledby="activity-title">
+        <div class="sec-head reveal"><div><h2 id="activity-title">Recent Activity</h2></div></div>
+        <div class="timeline reveal">
+          <div class="t-item"><span class="t-ico"><svg class="i"><use href="#i-check"/></svg></span><div><strong>Completed</strong><span>Digital Literacy - Module 3</span></div><span class="t-time">Today</span></div>
+          <div class="t-item"><span class="t-ico start"><svg class="i"><use href="#i-play"/></svg></span><div><strong>Started</strong><span>Web Development Fundamentals</span></div><span class="t-time">Yesterday</span></div>
+          <div class="t-item"><span class="t-ico"><svg class="i"><use href="#i-check"/></svg></span><div><strong>Completed</strong><span>Financial Literacy - Module 2</span></div><span class="t-time">2 days ago</span></div>
+        </div>
+      </section>
+
+      <!-- ============ MOTIVATION ============ -->
+      <section class="block" aria-label="Motivation">
+        <div class="banner reveal">
+          <h2>Learn. Grow. Lead.</h2>
+          <p>Every skill you learn is a step toward greater confidence, independence and opportunity.</p>
+          <button type="button" class="btn btn-peach" data-soon="Course module">Continue Learning</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+      <div class="foot-in">
+        <div><strong>Women Skill Training Portal</strong><p>Empowering women through skills, knowledge and opportunity.</p></div>
+        <nav class="foot-links" aria-label="Footer">
+          <a th:href="@{/}" href="/">About</a>
+          <a href="#programs">Programs</a>
+          <a href="#top" data-soon="Contact">Contact</a>
+          <a href="#top" data-soon="Privacy">Privacy</a>
+        </nav>
+      </div>
+      <p class="copy">© 2026 Women Skill Training Portal. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <!-- Temporary message -->
+  <div class="toast" id="toast" role="status" aria-live="polite"><svg class="i"><use href="#i-info"/></svg><span id="toastText"></span></div>
+
+  <script>
+    (function () {
+      'use strict';
+      var LOGIN_URL = '/login';
+      var $ = function (s, c) { return (c || document).querySelector(s); };
+      var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+
+      var sidebar = $('#sidebar'), overlay = $('#overlay'), menuBtn = $('#menuBtn');
+      var toast = $('#toast'), toastText = $('#toastText'), toastTimer = null;
+
+      /* ---- Toast (professional temporary message) ---- */
+      function showToast(msg) {
+        toastText.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
+      }
+      $$('[data-soon]').forEach(function (el) {
+        el.addEventListener('click', function (e) {
+          e.preventDefault();
+          var what = el.getAttribute('data-soon');
+          showToast(what === 'Course module' ? 'Course module coming soon.' : what + ' coming soon.');
+          closeDrawer();
+          closeMenus();
+        });
+      });
+
+      /* ---- Mobile sidebar drawer ---- */
+      function openDrawer() { sidebar.classList.add('open'); overlay.classList.add('show'); menuBtn.setAttribute('aria-expanded', 'true'); }
+      function closeDrawer() { sidebar.classList.remove('open'); overlay.classList.remove('show'); menuBtn.setAttribute('aria-expanded', 'false'); }
+      menuBtn.addEventListener('click', function () { sidebar.classList.contains('open') ? closeDrawer() : openDrawer(); });
+      overlay.addEventListener('click', closeDrawer);
+      window.addEventListener('resize', function () { if (window.innerWidth > 900) closeDrawer(); });
+
+      /* ---- Dropdowns (notifications + profile) ---- */
+      var pairs = [
+        { btn: $('#notifBtn'), menu: $('#notifMenu') },
+        { btn: $('#userBtn'), menu: $('#userMenu') }
+      ];
+      function closeMenus() {
+        pairs.forEach(function (p) { p.menu.classList.remove('open'); p.btn.setAttribute('aria-expanded', 'false'); });
+      }
+      pairs.forEach(function (p) {
+        p.btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var wasOpen = p.menu.classList.contains('open');
+          closeMenus();
+          if (!wasOpen) { p.menu.classList.add('open'); p.btn.setAttribute('aria-expanded', 'true'); }
+        });
+        p.menu.addEventListener('click', function (e) { e.stopPropagation(); });
+      });
+      document.addEventListener('click', closeMenus);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeMenus(); closeDrawer(); }
+      });
+      $$('#notifMenu .note').forEach(function (n) {
+        n.addEventListener('click', function () { $('.dot').style.display = 'none'; closeMenus(); });
+      });
+
+      /* ---- Logout: redirect to /login ---- */
+      $$('.logout-btn').forEach(function (b) {
+        b.addEventListener('click', function () { window.location.href = LOGIN_URL; });
+      });
+
+      /* ---- Sidebar active state (click + scroll spy) ---- */
+      var navLinks = $$('#sideNav a[data-spy]');
+      function setActive(id) {
+        navLinks.forEach(function (a) {
+          var on = a.getAttribute('data-spy') === id;
+          a.classList.toggle('active', on);
+          if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+        });
+      }
+      navLinks.forEach(function (a) {
+        a.addEventListener('click', function () { setActive(a.getAttribute('data-spy')); closeDrawer(); });
+      });
+      var spyIds = ['programs', 'learning', 'progress'];
+      function spy() {
+        var y = window.scrollY + 140, current = 'top';
+        spyIds.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && el.offsetTop <= y) current = id;
+        });
+        if (window.scrollY < 120) current = 'top';
+        setActive(current);
+      }
+      window.addEventListener('scroll', spy, { passive: true });
+
+      /* ---- Animated progress bars, counters, ring ---- */
+      function animateBars(root) {
+        $$('[data-w]', root).forEach(function (el) { el.style.width = el.getAttribute('data-w') + '%'; });
+      }
+      function countUp(el) {
+        var target = +el.getAttribute('data-count'), start = null, dur = 1100;
+        function tick(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / dur, 1);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+      function animateRing() {
+        var ring = $('#ring'), num = $('#ringNum'), target = 68, start = null, dur = 1400;
+        function tick(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / dur, 1);
+          var v = target * (1 - Math.pow(1 - p, 3));
+          ring.style.background = 'conic-gradient(var(--primary) 0deg, var(--peach) ' + (v * 3.6) + 'deg, var(--soft) ' + (v * 3.6) + 'deg)';
+          num.textContent = Math.round(v) + '%';
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      var reveals = $$('.reveal');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (!en.isIntersecting) return;
+            var t = en.target;
+            t.classList.add('in');
+            animateBars(t);
+            $$('[data-count]', t).forEach(countUp);
+            if (t.querySelector('#ring')) animateRing();
+            io.unobserve(t);
+          });
+        }, { threshold: 0.15 });
+        reveals.forEach(function (el) { io.observe(el); });
+      } else {
+        reveals.forEach(function (el) { el.classList.add('in'); animateBars(el); });
+        $$('[data-count]').forEach(function (el) { el.textContent = el.getAttribute('data-count'); });
+        $('#ringNum').textContent = '68%';
+      }
+    })();
+  </script>
+</body>
+</html>

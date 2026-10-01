@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Women Skill Training Portal | Empowering Women Through Skills</title>
+  <meta name="description" content="Learn practical skills, build confidence and create opportunities with the Women Skill Training Portal.">
+
+  <style>
+    /* ============ DESIGN TOKENS ============ */
+    :root {
+      --primary: #6D3CC7;
+      --primary-soft: #EFE8FA;
+      --dark: #241735;
+      --accent: #E89B6A;
+      --accent-soft: #FCEEE4;
+      --bg: #FAF8FC;
+      --white: #FFFFFF;
+      --text: #29232F;
+      --muted: #756D7D;
+      --line: #E9E2F0;
+      --radius: 14px;
+      --shadow-sm: 0 2px 10px rgba(36, 23, 53, .06);
+      --shadow-md: 0 14px 34px rgba(36, 23, 53, .10);
+      --font-head: Georgia, "Times New Roman", serif;
+      --font-body: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      --nav-h: 72px;
+    }
+
+    /* ============ BASE ============ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
+    body { font-family: var(--font-body); color: var(--text); background: var(--bg); line-height: 1.65; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    svg.i { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+    .container { width: min(1160px, 92%); margin-inline: auto; }
+    .section { padding: 92px 0; }
+    h1, h2, h3 { font-family: var(--font-head); color: var(--dark); line-height: 1.2; font-weight: 700; }
+    h2 { font-size: clamp(1.8rem, 3.4vw, 2.5rem); }
+    h3 { font-size: 1.15rem; }
+    .section-head { max-width: 620px; margin-bottom: 48px; }
+    .section-head.center { text-align: center; margin-inline: auto; }
+    .section-head p { color: var(--muted); margin-top: 12px; font-size: 1.05rem; }
+
+    /* ============ BUTTONS ============ */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 26px; border-radius: 10px; font-weight: 600; font-size: .95rem; border: 1.5px solid transparent; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s, color .2s, border-color .2s; font-family: inherit; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 8px 20px rgba(109, 60, 199, .28); }
+    .btn-primary:hover { background: #5A2FAB; }
+    .btn-outline { border-color: var(--primary); color: var(--primary); background: transparent; }
+    .btn-outline:hover { background: var(--primary-soft); }
+    .btn-accent { background: var(--accent); color: var(--dark); }
+    .btn-accent:hover { box-shadow: 0 8px 20px rgba(232, 155, 106, .4); }
+    .btn-ghost-light { border-color: rgba(255, 255, 255, .45); color: #fff; }
+    .btn-ghost-light:hover { background: rgba(255, 255, 255, .12); }
+
+    /* ============ NAVBAR ============ */
+    .navbar { position: sticky; top: 0; z-index: 100; height: var(--nav-h); background: var(--white); border-bottom: 1px solid var(--line); transition: background .3s, box-shadow .3s, backdrop-filter .3s; }
+    .navbar.scrolled { background: rgba(255, 255, 255, .84); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(36, 23, 53, .09); }
+    .nav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo { width: 42px; height: 42px; border-radius: 50%; background: var(--primary); display: grid; place-items: center; color: #fff; font-size: 1.3rem; box-shadow: inset 0 0 0 3px var(--accent); }
+    .brand-text { line-height: 1.15; }
+    .brand-text strong { display: block; font-family: var(--font-head); font-size: 1.15rem; color: var(--dark); letter-spacing: .04em; }
+    .brand-text span { font-size: .7rem; color: var(--muted); }
+    .nav-links { display: flex; align-items: center; gap: 30px; }
+    .nav-links a.link { font-size: .93rem; font-weight: 500; color: var(--text); position: relative; padding: 6px 0; }
+    .nav-links a.link::after { content: ""; position: absolute; left: 0; bottom: 0; width: 0; height: 2px; background: var(--accent); transition: width .25s; }
+    .nav-links a.link:hover::after, .nav-links a.link.active::after { width: 100%; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-actions .btn { padding: 9px 20px; }
+    .hamburger { display: none; width: 44px; height: 44px; border: 1px solid var(--line); background: var(--white); border-radius: 10px; cursor: pointer; align-items: center; justify-content: center; flex-direction: column; gap: 5px; }
+    .hamburger span { width: 20px; height: 2px; background: var(--dark); border-radius: 2px; transition: transform .25s, opacity .25s; }
+    .hamburger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .hamburger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu { display: none; }
+
+    /* ============ HERO ============ */
+    .hero { position: relative; overflow: hidden; padding: 84px 0 96px; background:
+      radial-gradient(600px 400px at 85% 10%, rgba(232, 155, 106, .16), transparent 70%),
+      radial-gradient(700px 500px at 0% 100%, rgba(109, 60, 199, .08), transparent 70%), var(--bg); }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+    .badge { display: inline-block; padding: 7px 16px; border-radius: 999px; background: var(--accent-soft); color: #9A5527; font-size: .75rem; font-weight: 700; letter-spacing: .14em; border: 1px solid #F3D3BC; }
+    .hero h1 { font-size: clamp(2.2rem, 4.6vw, 3.5rem); margin: 22px 0 20px; }
+    .hl { color: var(--primary); background: linear-gradient(transparent 82%, rgba(232, 155, 106, .45) 82%); }
+    .hero p.lead { font-size: 1.1rem; color: var(--muted); max-width: 520px; }
+    .hero-btns { display: flex; flex-wrap: wrap; gap: 14px; margin: 32px 0 26px; }
+    .trust { display: flex; align-items: center; gap: 10px; font-size: .9rem; color: var(--muted); }
+    .trust .i { color: var(--primary); font-size: 1.2rem; }
+
+    /* hero visual composition */
+    .visual { position: relative; height: 480px; }
+    .v-blob { position: absolute; inset: 30px 20px 20px 30px; border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%; background: linear-gradient(145deg, var(--primary), #4A248F); }
+    .v-blob::after { content: ""; position: absolute; width: 120px; height: 120px; border-radius: 50%; background: var(--accent); right: -20px; top: 40px; opacity: .9; }
+    .laptop { position: absolute; left: 50%; top: 120px; transform: translateX(-50%); width: 300px; }
+    .laptop-screen { background: var(--white); border: 8px solid var(--dark); border-bottom-width: 10px; border-radius: 14px 14px 4px 4px; padding: 16px; box-shadow: var(--shadow-md); }
+    .laptop-base { height: 12px; background: #3A2A52; border-radius: 0 0 14px 14px; margin: 0 -22px; }
+    .ls-title { font-size: .72rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .ls-title span { color: var(--primary); }
+    .bar { height: 8px; border-radius: 6px; background: var(--primary-soft); margin-bottom: 9px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 6px; background: var(--primary); }
+    .bar.b2 i { background: var(--accent); }
+    .ls-chips { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+    .ls-chips em { font-style: normal; font-size: .62rem; padding: 3px 9px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+    .float-card { position: absolute; background: var(--white); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 12px; font-size: .8rem; animation: floaty 6s ease-in-out infinite; }
+    .float-card strong { display: block; color: var(--dark); font-size: .85rem; line-height: 1.2; }
+    .float-card small { color: var(--muted); font-size: .72rem; }
+    .fc-ico { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 1.2rem; }
+    .fc1 { left: -6px; top: 40px; } .fc1 .fc-ico { background: var(--primary-soft); color: var(--primary); }
+    .fc2 { right: -6px; top: 250px; animation-delay: -2s; } .fc2 .fc-ico { background: var(--accent-soft); color: #C0662A; }
+    .fc3 { left: 6px; bottom: 30px; animation-delay: -4s; }
+    .avatars { display: flex; }
+    .avatars span { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; margin-left: -8px; display: grid; place-items: center; font-size: .65rem; font-weight: 700; color: #fff; }
+    .avatars span:first-child { margin-left: 0; }
+    .av1 { background: var(--primary); } .av2 { background: var(--accent); color: var(--dark) !important; } .av3 { background: var(--dark); }
+    @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    /* ============ STATS ============ */
+    .stats { margin-top: -48px; position: relative; z-index: 5; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--white); border-radius: 18px; box-shadow: var(--shadow-md); border: 1px solid var(--line); overflow: hidden; }
+    .stat { padding: 30px 20px; text-align: center; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+    .stat b { display: block; font-family: var(--font-head); font-size: 2.3rem; color: var(--primary); line-height: 1.1; }
+    .stat span { font-size: .9rem; color: var(--muted); }
+
+    /* ============ PROGRAMS ============ */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 26px; box-shadow: var(--shadow-sm); transition: transform .3s, box-shadow .3s, border-color .3s; display: flex; flex-direction: column; }
+    .card:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: #D8C9EE; }
+    .card-ico { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; font-size: 1.5rem; background: var(--primary-soft); color: var(--primary); margin-bottom: 18px; transition: background .3s, color .3s; }
+    .card:hover .card-ico { background: var(--primary); color: #fff; }
+    .card:nth-child(even) .card-ico { background: var(--accent-soft); color: #C0662A; }
+    .card:nth-child(even):hover .card-ico { background: var(--accent); color: var(--dark); }
+    .cat { font-size: .78rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .card p { color: var(--muted); font-size: .94rem; margin: 8px 0 20px; flex: 1; }
+    .card-link { font-weight: 600; font-size: .92rem; color: var(--primary); display: inline-flex; gap: 6px; align-items: center; }
+    .card-link span { transition: transform .25s; }
+    .card:hover .card-link span { transform: translateX(5px); }
+
+    /* ============ HOW IT WORKS ============ */
+    .how { background: var(--white); border-block: 1px solid var(--line); }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; position: relative; }
+    .steps::before { content: ""; position: absolute; top: 28px; left: 12%; right: 12%; border-top: 2px dashed #CDBBE8; }
+    .step { text-align: center; position: relative; padding: 0 8px; }
+    .step-num { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 18px; background: var(--white); border: 2px solid var(--primary); color: var(--primary); font-family: var(--font-head); font-weight: 700; font-size: 1.15rem; display: grid; place-items: center; position: relative; box-shadow: 0 0 0 7px var(--white); }
+    .step:last-child .step-num { background: var(--primary); color: #fff; }
+    .step p { color: var(--muted); font-size: .9rem; margin-top: 6px; }
+
+    /* ============ WHY ============ */
+    .why { background: var(--dark); color: #fff; position: relative; overflow: hidden; }
+    .why::before { content: ""; position: absolute; width: 480px; height: 480px; border-radius: 50%; right: -160px; top: -200px; background: radial-gradient(circle, rgba(109, 60, 199, .5), transparent 70%); }
+    .why h2 { color: #fff; }
+    .why .section-head p { color: #BDB2CC; }
+    .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; position: relative; }
+    .why-item { display: flex; gap: 18px; padding: 26px; border-radius: var(--radius); background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); transition: background .3s; }
+    .why-item:hover { background: rgba(255, 255, 255, .1); }
+    .why-item .ico { width: 48px; height: 48px; border-radius: 12px; background: var(--accent); color: var(--dark); display: grid; place-items: center; font-size: 1.4rem; flex: none; }
+    .why-item h3 { color: #fff; margin-bottom: 4px; }
+    .why-item p { color: #BDB2CC; font-size: .93rem; }
+
+    /* ============ FEATURE HIGHLIGHT ============ */
+    .feature { background: linear-gradient(120deg, var(--primary-soft), var(--accent-soft)); border-radius: 24px; padding: 64px 56px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; border: 1px solid var(--line); }
+    .feature p { color: var(--muted); margin: 16px 0 28px; font-size: 1.05rem; max-width: 480px; }
+    .f-visual { position: relative; height: 300px; }
+    .f-card { position: absolute; background: var(--white); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow-md); }
+    .fv1 { left: 0; top: 10px; width: 78%; }
+    .fv2 { right: 0; top: 130px; width: 62%; }
+    .fv3 { left: 12%; bottom: 0; width: 56%; display: flex; align-items: center; gap: 12px; }
+    .f-card h4 { font-size: .85rem; color: var(--dark); margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .f-card h4 span { color: var(--primary); }
+    .ring { width: 54px; height: 54px; border-radius: 50%; background: conic-gradient(var(--accent) 0 72%, var(--primary-soft) 72% 100%); display: grid; place-items: center; flex: none; }
+    .ring::after { content: "72%"; width: 40px; height: 40px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: .72rem; font-weight: 700; color: var(--dark); }
+    .f-card small { color: var(--muted); font-size: .78rem; }
+    .check { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--text); margin-bottom: 6px; }
+    .check .i { color: var(--primary); }
+
+    /* ============ ABOUT ============ */
+    .about-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 56px; align-items: center; }
+    .about p { color: var(--muted); font-size: 1.05rem; margin-top: 16px; }
+    .pillars { display: grid; gap: 14px; }
+    .pillar { display: flex; gap: 16px; align-items: center; padding: 18px 22px; background: var(--white); border: 1px solid var(--line); border-left: 4px solid var(--primary); border-radius: 10px; }
+    .pillar:nth-child(2) { border-left-color: var(--accent); }
+    .pillar .i { font-size: 1.5rem; color: var(--primary); }
+    .pillar strong { color: var(--dark); display: block; }
+    .pillar span { font-size: .9rem; color: var(--muted); }
+
+    /* ============ CTA ============ */
+    .cta { background: linear-gradient(135deg, var(--dark), #3B2268); border-radius: 24px; text-align: center; padding: 72px 32px; color: #fff; position: relative; overflow: hidden; }
+    .cta::before { content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%; background: var(--accent); opacity: .16; left: -80px; bottom: -110px; }
+    .cta h2 { color: #fff; position: relative; }
+    .cta p { color: #D3C9E0; margin: 14px 0 30px; position: relative; }
+    .cta .btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; position: relative; }
+
+    /* ============ FOOTER ============ */
+    footer { background: var(--dark); color: #BDB2CC; padding: 68px 0 0; margin-top: 92px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-brand h3 { color: #fff; font-size: 1.2rem; margin-bottom: 10px; }
+    .foot-brand p { font-size: .92rem; max-width: 300px; }
+    footer h4 { color: #fff; font-size: .95rem; margin-bottom: 16px; font-family: var(--font-body); }
+    footer li { margin-bottom: 10px; font-size: .92rem; }
+    footer li a { transition: color .2s; }
+    footer li a:hover { color: var(--accent); }
+    .foot-bottom { margin-top: 48px; padding: 22px 0; border-top: 1px solid rgba(255, 255, 255, .12); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: .85rem; }
+
+    /* ============ BACK TO TOP ============ */
+    .to-top { position: fixed; right: 22px; bottom: 22px; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--primary); color: #fff; font-size: 1.3rem; cursor: pointer; display: grid; place-items: center; box-shadow: 0 8px 22px rgba(109, 60, 199, .4); opacity: 0; visibility: hidden; transform: translateY(12px); transition: opacity .3s, transform .3s, visibility .3s, background .2s; z-index: 90; }
+    .to-top.show { opacity: 1; visibility: visible; transform: none; }
+    .to-top:hover { background: #5A2FAB; }
+
+    /* ============ SCROLL REVEAL ============ */
+    .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .delay-1 { transition-delay: .1s; } .delay-2 { transition-delay: .2s; } .delay-3 { transition-delay: .3s; }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 1020px) {
+      .hero-grid, .feature, .about-grid { grid-template-columns: 1fr; }
+      .visual { max-width: 460px; margin-inline: auto; width: 100%; }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .feature { padding: 48px 32px; }
+    }
+    @media (max-width: 860px) {
+      .nav-links, .nav-actions { display: none; }
+      .hamburger { display: flex; }
+      .mobile-menu { display: block; position: absolute; top: var(--nav-h); left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-md); padding: 8px 4% 22px; max-height: 0; overflow: hidden; visibility: hidden; transition: max-height .35s ease, visibility .35s; }
+      .mobile-menu.open { max-height: 480px; visibility: visible; }
+      .mobile-menu a.link { display: block; padding: 14px 4px; border-bottom: 1px solid var(--line); font-weight: 500; }
+      .mobile-menu .m-btns { display: flex; gap: 12px; margin-top: 18px; }
+      .mobile-menu .m-btns .btn { flex: 1; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(2) { border-right: 0; }
+      .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .steps { grid-template-columns: repeat(2, 1fr); row-gap: 36px; }
+      .steps::before { display: none; }
+      .why-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .section { padding: 64px 0; }
+      .hero { padding: 48px 0 80px; }
+      .cards { grid-template-columns: 1fr; }
+      .hero-btns .btn, .cta .btns .btn { width: 100%; }
+      .visual { height: 420px; }
+      .laptop { width: 250px; top: 110px; }
+      .fc1 { left: 0; } .fc2 { right: 0; top: 270px; }
+      .feature { padding: 36px 22px; }
+      .f-visual { height: 280px; }
+      .foot-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .brand-text span { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ============ SVG ICON SPRITE ============ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M5 15c-1 1-1.5 4-1.5 4s3-.5 4-1.5M12 15l-3-3a22 22 0 0 1 8-9c2 0 4 0 4 0s0 2-1 4a22 22 0 0 1-8 8z"/><circle cx="15.5" cy="8.5" r="1.5"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.7 7L4 20l1.2-4.6A8 8 0 1 1 21 12z"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4C9 4 4 9 4 15c0 3 2 5 5 5 6 0 11-5 11-16zM4 20c3-5 6-8 11-11"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.5-2s0-2.5 1.5-2.5H17a4 4 0 0 0 4-4C21 6.5 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3 3 0 0 0-2.5-1.2c-1.7 0-2.8.9-2.8 2s1 1.6 2.8 2 2.8.9 2.8 2-1.1 2-2.8 2A3 3 0 0 1 9.500 15M12 6.500v1.300M12 16.200v1.300"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-8-4.800-8-11a4.500 4.500 0 0 1 8-2.800A4.500 4.500 0 0 1 20 9c0 6.200-8 11-8 11z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.500 6.500a4 4 0 0 0 5 5L10 21a2.100 2.100 0 0 1-3-3l9.500-9.500a4 4 0 0 0-2-2z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500"/><path d="M2.500 20a6.500 6.500 0 0 1 13 0M16 4.500a3.500 3.500 0 0 1 0 7M18 14a6.500 6.500 0 0 1 3.500 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.500l3 3 5-6"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.500 14L7 22l5-3 5 3-1.500-8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19V5M9 7h6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  </svg>
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#home" class="brand" aria-label="WSTP home">
+        <span class="brand-logo" aria-hidden="true"><svg class="i"><use href="#i-heart"/></svg></span>
+        <span class="brand-text"><strong>WSTP</strong><span>Women Skill Training Portal</span></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a class="link active" href="#home">Home</a>
+        <a class="link" th:href="@{/programs}">Programs</a>
+        <a class="link" href="#how-it-works">How It Works</a>
+        <a class="link" href="#about">About Us</a>
+      </nav>
+
+      <div class="nav-actions">
+    <a class="btn btn-outline" th:href="@{/login}" href="/login">Login</a>
+    <a class="btn btn-primary" th:href="@{/register}" href="/register">Register</a>
+    <a class="btn btn-primary" th:href="@{/dashboard}" href="/dashboard">Dashboard</a>
+    </div>
+
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <a class="link" href="#home">Home</a>
+      <a class="link" th:href="@{/programs}">Programs</a>
+      <a class="link" href="#how-it-works">How It Works</a>
+      <a class="link" href="#about">About Us</a>
+      <div class="m-btns">
+    <a class="btn btn-outline" th:href="@{/login}" href="/login">Login</a>
+    <a class="btn btn-primary" th:href="@{/register}" href="/register">Register</a>
+    <a class="btn btn-primary" th:href="@{/dashboard}" href="/dashboard">Dashboard</a>
+    </div>
+    </div>
+  </header>
+
+  <main id="home">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="badge">EMPOWER • LEARN • GROW</span>
+          <h1>Empowering Women<br>Through <span class="hl">Skills &amp; Opportunities</span></h1>
+          <p class="lead">Learn practical skills, build confidence, and create opportunities for a stronger and more independent future.</p>
+          <div class="hero-btns">
+            <a th:href="@{/programs}" class="btn btn-primary">Explore Programs</a>
+            <a th:href="@{/register}" href="/register" class="btn btn-outline">Join the Community</a>
+          </div>
+          <p class="trust"><svg class="i"><use href="#i-shield"/></svg> Built to support women through accessible skill development</p>
+        </div>
+
+        <!-- Hero visual: pure HTML/CSS composition -->
+        <div class="visual" aria-hidden="true">
+          <div class="v-blob"></div>
+          <div class="laptop">
+            <div class="laptop-screen">
+              <div class="ls-title">My Learning <span>Week 3</span></div>
+              <div class="bar"><i style="width:78%"></i></div>
+              <div class="bar b2"><i style="width:54%"></i></div>
+              <div class="bar"><i style="width:36%"></i></div>
+              <div class="ls-chips"><em>Digital</em><em>Finance</em><em>Speaking</em></div>
+            </div>
+            <div class="laptop-base"></div>
+          </div>
+          <div class="float-card fc1">
+            <span class="fc-ico"><svg class="i"><use href="#i-award"/></svg></span>
+            <div><strong>Skill badge earned</strong><small>Digital Basics</small></div>
+          </div>
+          <div class="float-card fc2">
+            <span class="fc-ico"><svg class="i"><use href="#i-chart"/></svg></span>
+            <div><strong>72% complete</strong><small>Entrepreneurship</small></div>
+          </div>
+          <div class="float-card fc3">
+            <div class="avatars"><span class="av1">A</span><span class="av2">R</span><span class="av3">S</span></div>
+            <div><strong>Learning together</strong><small>Community circle</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STATISTICS ============ -->
+    <section class="stats" aria-label="Platform statistics">
+      <div class="container">
+        <div class="stats-grid reveal">
+          <div class="stat"><b data-target="10" data-suffix="+">0</b><span>Skill Programs</span></div>
+          <div class="stat"><b data-target="500" data-suffix="+">0</b><span>Learning Resources</span></div>
+          <div class="stat"><b data-target="1000" data-suffix="+">0</b><span>Learners Supported</span></div>
+          <div class="stat"><b data-target="95" data-suffix="%">0</b><span>Learning Engagement</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PROGRAMS ============ -->
+    <section class="section" id="programs">
+      <div class="container">
+        <div class="section-head center reveal">
+          <h2>Explore Skill Programs</h2>
+          <p>Build practical skills that can create real opportunities.</p>
+        </div>
+        <div class="cards">
+          <article class="card reveal">
+            <div class="card-ico"><svg class="i"><use href="#i-monitor"/></svg></div>
+            <span class="cat">Technology</span>
+            <h3>Digital Skills</h3>
+            <p>Technology, computer literacy and digital tools</p>
+            <a th:href="@{/programs}" class="card-link">
+               Explore Program <span>→</span>
+            </a>
+          </article>
+          <article class="card reveal delay-1">
+            <div class="card-ico"><svg class="i"><use href="#i-rocket"/></svg></div>
+            <span class="cat">Business</span>
+            <h3>Entrepreneurship</h3>
+            <p>Business ideas, planning and financial basics</p>
+            <a href="#" class="card-link">Explore Program <span>→</span></a>
+          </article>
+          <article class="card reveal delay-2">
+            <div class="card-ico"><svg class="i"><use href="#i-chat"/></svg></div>
+            <span class="cat">Personal Growth</span>
+            <h3>Communication</h3>
+            <p>English communication, public speaking and confidence</p>
+            <a href="#" class="card-link">Explore Program <span>→</span></a>
+          </article>
+          <article class="card reveal">
+            <div class="card-ico"><svg class="i"><use href="#i-leaf"/></svg></div>
+            <span class="cat">Wellness</span>
+            <h3>Beauty &amp; Wellness</h3>
+            <p>Wellness, self-care and professional skills</p>
+            <a href="#" class="card-link">Explore Program <span>→</span></a>
+          </article>
+          <article class="card reveal delay-1">
+            <div class="card-ico"><svg class="i"><use href="#i-palette"/></svg></div>
+            <span class="cat">Creative</span>
+            <h3>Handicrafts &amp; Creativity</h3>
+            <p>Creative skills and small-business opportunities</p>
+            <a href="#" class="card-link">Explore Program <span>→</span></a>
+          </article>
+          <article class="card reveal delay-2">
+            <div class="card-ico"><svg class="i"><use href="#i-coin"/></svg></div>
+            <span class="cat">Finance</span>
+            <h3>Financial Literacy</h3>
+            <p>Saving, budgeting and financial awareness</p>
+            <a href="#" class="card-link">Explore Program <span>→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section how" id="how-it-works">
+      <div class="container">
+        <div class="section-head center reveal">
+          <h2>Start Your Learning Journey</h2>
+        </div>
+        <ol class="steps" style="list-style:none">
+          <li class="step reveal"><div class="step-num">01</div><h3>Create Your Profile</h3></li>
+          <li class="step reveal delay-1"><div class="step-num">02</div><h3>Choose Your Skills</h3></li>
+          <li class="step reveal delay-2"><div class="step-num">03</div><h3>Learn &amp; Practice</h3></li>
+          <li class="step reveal delay-3"><div class="step-num">04</div><h3>Track Your Progress</h3></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ WHY THIS PORTAL ============ -->
+    <section class="section why" id="why">
+      <div class="container">
+        <div class="section-head reveal">
+          <h2>Learning That Leads to Opportunity</h2>
+        </div>
+        <div class="why-grid">
+          <div class="why-item reveal">
+            <span class="ico"><svg class="i"><use href="#i-clock"/></svg></span>
+            <div><h3>Accessible Learning</h3><p>Learn at your own pace.</p></div>
+          </div>
+          <div class="why-item reveal delay-1">
+            <span class="ico"><svg class="i"><use href="#i-tool"/></svg></span>
+            <div><h3>Practical Skills</h3><p>Focus on skills that can be applied in real life.</p></div>
+          </div>
+          <div class="why-item reveal">
+            <span class="ico"><svg class="i"><use href="#i-chart"/></svg></span>
+            <div><h3>Progress Tracking</h3><p>Track your learning journey and achievements.</p></div>
+          </div>
+          <div class="why-item reveal delay-1">
+            <span class="ico"><svg class="i"><use href="#i-users"/></svg></span>
+            <div><h3>Community Support</h3><p>Grow through a supportive learning environment.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURE HIGHLIGHT ============ -->
+    <section class="section">
+      <div class="container">
+        <div class="feature reveal">
+          <div>
+            <h2>Your Skills. Your Growth. Your Future.</h2>
+            <p>Women can discover new skills, participate in training programs, track their learning journey and work towards greater independence.</p>
+            <a th:href="@{/register}" href="/register" class="btn btn-primary">Start Learning</a>
+          </div>
+          <div class="f-visual" aria-hidden="true">
+            <div class="f-card fv1">
+              <h4>Skill progress <span>This month</span></h4>
+              <div class="bar"><i style="width:82%"></i></div>
+              <div class="bar b2"><i style="width:61%"></i></div>
+              <div class="bar" style="margin-bottom:0"><i style="width:45%"></i></div>
+            </div>
+            <div class="f-card fv2">
+              <h4>Next steps</h4>
+              <div class="check"><svg class="i"><use href="#i-check"/></svg> Finish module 4</div>
+              <div class="check"><svg class="i"><use href="#i-check"/></svg> Practice session</div>
+            </div>
+            <div class="f-card fv3">
+              <div class="ring"></div>
+              <div><strong style="color:var(--dark);font-size:.85rem">On track</strong><br><small>Keep going</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section about" id="about" style="padding-top:20px">
+      <div class="container about-grid">
+        <div class="reveal">
+          <h2>About Women Skill Training Portal</h2>
+          <p>The Women Skill Training Portal is a digital platform designed to provide structured skill-development opportunities for women. It brings learning resources, training programs and learner progress into one accessible platform.</p>
+        </div>
+        <div class="pillars reveal delay-1">
+          <div class="pillar"><svg class="i"><use href="#i-book"/></svg><div><strong>Learning resources</strong><span>Organised material for every program</span></div></div>
+          <div class="pillar"><svg class="i"><use href="#i-award"/></svg><div><strong>Training programs</strong><span>Structured paths from basics to practice</span></div></div>
+          <div class="pillar"><svg class="i"><use href="#i-chart"/></svg><div><strong>Learner progress</strong><span>Your achievements in one place</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CALL TO ACTION ============ -->
+    <section class="container" aria-labelledby="cta-title">
+      <div class="cta reveal">
+        <h2 id="cta-title">Ready to Build Your Next Skill?</h2>
+        <p>Start learning today and take the next step toward your goals.</p>
+        <div class="btns">
+          <a th:href="@{/register}" href="/register" class="btn btn-accent">Get Started</a>
+          <a href="#programs" class="btn btn-ghost-light">Explore Programs</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <h3>Women Skill Training Portal</h3>
+          <p>Empowering women through accessible skill development.</p>
+        </div>
+        <nav aria-label="Platform">
+          <h4>Platform</h4>
+          <ul>
+            <li><a th:href="@{/programs}">Programs</a></li>
+            <li><a href="#programs">Learning Resources</a></li>
+            <li><a href="#about">About Us</a></li>
+          </ul>
+        </nav>
+        <nav aria-label="Support">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">FAQs</a></li>
+          </ul>
+        </nav>
+        <nav aria-label="Account">
+          <h4>Account</h4>
+          <ul>
+            <li><a th:href="@{/login}" href="/login">Login</a></li>
+            <li><a th:href="@{/register}" href="/register">Register</a></li>
+            <li><a th:href="@{/dashboard}" href="/dashboard">Dashboard</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 Women Skill Training Portal</span>
+        <span>All rights reserved.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button class="to-top" id="toTop" aria-label="Back to top"><svg class="i"><use href="#i-up"/></svg></button>
+
+  <script>
+    (function () {
+      'use strict';
+      var navbar = document.getElementById('navbar');
+      var toTop = document.getElementById('toTop');
+      var burger = document.getElementById('hamburger');
+      var menu = document.getElementById('mobileMenu');
+
+      /* Navbar blur/shadow + back-to-top visibility on scroll */
+      function onScroll() {
+        var y = window.scrollY || document.documentElement.scrollTop;
+        navbar.classList.toggle('scrolled', y > 20);
+        toTop.classList.toggle('show', y > 500);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      /* Mobile hamburger menu */
+      function setMenu(open) {
+        menu.classList.toggle('open', open);
+        burger.setAttribute('aria-expanded', String(open));
+      }
+      burger.addEventListener('click', function () {
+        setMenu(burger.getAttribute('aria-expanded') !== 'true');
+      });
+      menu.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () { setMenu(false); });
+      });
+      window.addEventListener('resize', function () { if (window.innerWidth > 860) setMenu(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+
+      /* Back to top (smooth scroll handled by CSS) */
+      toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+      /* Active nav link highlighting */
+      var links = document.querySelectorAll('.nav-links a.link');
+      var map = { home: 0, programs: 1, 'how-it-works': 2, about: 3 };
+      if ('IntersectionObserver' in window) {
+        var spy = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting && map[en.target.id] !== undefined) {
+              links.forEach(function (l) { l.classList.remove('active'); });
+              links[map[en.target.id]].classList.add('active');
+            }
+          });
+        }, { rootMargin: '-45% 0px -50% 0px' });
+        Object.keys(map).forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) spy.observe(el);
+        });
+      }
+
+      /* Animated counters */
+      function countUp(el) {
+        var target = +el.dataset.target, suffix = el.dataset.suffix || '', dur = 1600, start = null;
+        function tick(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / dur, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.floor(eased * target) + (p === 1 ? suffix : '');
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      /* Scroll reveal + trigger counters */
+      var reveals = document.querySelectorAll('.reveal');
+      var counters = document.querySelectorAll('[data-target]');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.15 });
+        reveals.forEach(function (el) { io.observe(el); });
+
+        var co = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { countUp(en.target); co.unobserve(en.target); }
+          });
+        }, { threshold: 0.6 });
+        counters.forEach(function (el) { co.observe(el); });
+      } else {
+        reveals.forEach(function (el) { el.classList.add('in'); });
+        counters.forEach(function (el) { el.textContent = el.dataset.target + (el.dataset.suffix || ''); });
+      }
+    })();
+  </script>
+</body>
+</html>

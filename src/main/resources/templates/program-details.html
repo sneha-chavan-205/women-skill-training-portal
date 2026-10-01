@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title th:text="${program.title} + ' | Women Skill Training Portal'">
+        Program | Women Skill Training Portal
+    </title>
+
+    <style>
+
+        :root {
+            --primary: #6D3CC7;
+            --primary-soft: #EFE7FB;
+            --dark: #241735;
+            --accent: #E89B6A;
+            --accent-soft: #FCEBDD;
+            --bg: #FAF8FC;
+            --muted: #6B6280;
+            --white: #ffffff;
+            --success: #2E8B57;
+            --success-soft: #E8F6EE;
+            --danger: #B42318;
+            --danger-soft: #FDECEC;
+            --shadow: 0 10px 30px rgba(109, 60, 199, 0.10);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+            color: var(--dark);
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* =========================
+           HEADER
+        ========================== */
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #ECE5F6;
+        }
+
+        .header-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 14px 24px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+
+            background: linear-gradient(
+                135deg,
+                var(--primary),
+                #9A6BE8
+            );
+
+            display: grid;
+            place-items: center;
+
+            box-shadow:
+                0 6px 16px rgba(109, 60, 199, 0.3);
+        }
+
+        .brand-name {
+            font-family: Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            padding: 8px 16px;
+            border-radius: 999px;
+
+            font-size: 0.95rem;
+            font-weight: 500;
+
+            color: var(--muted);
+
+            transition:
+                background 0.2s,
+                color 0.2s;
+        }
+
+        .nav a:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .nav a.active {
+            background: var(--primary);
+            color: var(--white);
+
+            box-shadow:
+                0 6px 14px rgba(109, 60, 199, 0.28);
+        }
+
+        .nav a.logout {
+            border: 1.5px solid var(--accent);
+            color: #C86F3A;
+        }
+
+        .nav a.logout:hover {
+            background: var(--accent-soft);
+        }
+
+        /* =========================
+           MAIN
+        ========================== */
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px 72px;
+        }
+
+        .crumbs {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        .crumbs a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* =========================
+           PROGRAM CARD
+        ========================== */
+
+        .detail-card {
+            background: var(--white);
+            border-radius: 26px;
+            overflow: hidden;
+
+            box-shadow: var(--shadow);
+
+            border: 1px solid #F0EAF8;
+        }
+
+        .detail-top {
+            padding: 40px 40px 32px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #F1E9FC 0%,
+                    #FBEFE6 100%
+                );
+
+            border-bottom: 1px solid #ECE5F6;
+        }
+
+        .badge {
+            display: inline-block;
+
+            padding: 5px 14px;
+            border-radius: 999px;
+
+            background: var(--white);
+            color: #B85F2B;
+
+            font-size: 0.75rem;
+            font-weight: 800;
+
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+
+            margin-bottom: 16px;
+
+            box-shadow: var(--shadow);
+        }
+
+        .detail-top h1 {
+            font-size: 2.6rem;
+            line-height: 1.15;
+        }
+
+        .detail-body {
+            padding: 36px 40px 40px;
+        }
+
+        .detail-body h2 {
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+        }
+
+        .detail-body .desc {
+            color: var(--muted);
+            font-size: 1.02rem;
+            margin-bottom: 28px;
+        }
+
+        /* =========================
+           PROGRAM FACTS
+        ========================== */
+
+        .facts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .fact {
+            background: var(--bg);
+
+            border: 1px solid #ECE5F6;
+
+            border-radius: 16px;
+
+            padding: 16px 18px;
+        }
+
+        .fact .label {
+            font-size: 0.75rem;
+
+            font-weight: 700;
+
+            letter-spacing: 0.06em;
+
+            text-transform: uppercase;
+
+            color: var(--muted);
+        }
+
+        .fact .value {
+            font-size: 1.05rem;
+
+            font-weight: 700;
+
+            color: var(--primary);
+
+            margin-top: 2px;
+        }
+
+        /* =========================
+           BUTTONS
+        ========================== */
+
+        .actions {
+            display: flex;
+
+            gap: 14px;
+
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+
+            text-align: center;
+
+            padding: 13px 26px;
+
+            border-radius: 14px;
+
+            font-weight: 600;
+
+            font-size: 0.97rem;
+
+            border: none;
+
+            cursor: pointer;
+
+            font-family: inherit;
+
+            transition:
+                transform 0.2s,
+                box-shadow 0.2s,
+                opacity 0.2s;
+        }
+
+        .btn-primary {
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    #8A55E0
+                );
+
+            color: var(--white);
+
+            box-shadow:
+                0 8px 18px rgba(109, 60, 199, 0.28);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 12px 22px rgba(109, 60, 199, 0.35);
+        }
+
+        .btn-primary:disabled {
+            cursor: not-allowed;
+            opacity: 0.75;
+            transform: none;
+        }
+
+        .btn-outline {
+            background: var(--white);
+
+            color: var(--primary);
+
+            border: 1.5px solid #DCCFF3;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-soft);
+
+            border-color: var(--primary);
+        }
+
+        /* =========================
+           NOTIFICATION
+        ========================== */
+
+        .notice {
+            display: none;
+
+            margin-top: 22px;
+
+            padding: 14px 18px;
+
+            border-radius: 14px;
+
+            font-weight: 600;
+
+            border: 1px solid transparent;
+        }
+
+        .notice.show {
+            display: block;
+        }
+
+        .notice.success {
+            background: var(--success-soft);
+            color: var(--success);
+            border-color: #B9E3C9;
+        }
+
+        .notice.error {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-color: #F5C2C0;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 640px) {
+
+            .header-inner {
+                justify-content: center;
+            }
+
+            .nav {
+                justify-content: center;
+            }
+
+            .detail-top,
+            .detail-body {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .detail-top h1 {
+                font-size: 2rem;
+            }
+
+            .facts {
+                grid-template-columns: 1fr;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<!-- =========================
+     HEADER
+========================== -->
+
+<header class="site-header">
+
+    <div class="header-inner">
+
+        <a class="brand" th:href="@{/}">
+
+            <span class="brand-icon">
+
+                <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true">
+
+                    <path
+                        d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6L12 3z"
+                        fill="#fff"/>
+
+                </svg>
+
+            </span>
+
+            <span class="brand-name">
+                Women Skill Training Portal
+            </span>
+
+        </a>
+
+
+        <nav class="nav">
+
+            <a th:href="@{/}">
+                Home
+            </a>
+
+            <a th:href="@{/dashboard}">
+                Dashboard
+            </a>
+
+            <a
+                th:href="@{/programs}"
+                class="active">
+                Skill Programs
+            </a>
+
+            <a th:href="@{/#about}">
+                About
+            </a>
+
+            <a
+                th:href="@{/login}"
+                class="logout">
+                Logout
+            </a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+
+<!-- =========================
+     MAIN CONTENT
+========================== -->
+
+<main class="wrap">
+
+    <!-- Breadcrumb -->
+
+    <p class="crumbs">
+
+        <a th:href="@{/programs}">
+            Skill Programs
+        </a>
+
+        &rsaquo;
+
+        <span th:text="${program.title}">
+            Program
+        </span>
+
+    </p>
+
+
+    <!-- Program Details -->
+
+    <section class="detail-card">
+
+        <!-- Program Header -->
+
+        <div class="detail-top">
+
+            <span
+                class="badge"
+                th:text="${program.category}">
+                Category
+            </span>
+
+            <h1 th:text="${program.title}">
+                Program Title
+            </h1>
+
+        </div>
+
+
+        <!-- Program Information -->
+
+        <div class="detail-body">
+
+            <h2>
+                About this program
+            </h2>
+
+
+            <p
+                class="desc"
+                th:text="${program.description}">
+                Program description
+            </p>
+
+
+            <!-- Program Facts -->
+
+            <div class="facts">
+
+                <div class="fact">
+
+                    <div class="label">
+                        Category
+                    </div>
+
+                    <div
+                        class="value"
+                        th:text="${program.category}">
+                        Category
+                    </div>
+
+                </div>
+
+
+                <div class="fact">
+
+                    <div class="label">
+                        Level
+                    </div>
+
+                    <div
+                        class="value"
+                        th:text="${program.level}">
+                        Beginner
+                    </div>
+
+                </div>
+
+
+                <div class="fact">
+
+                    <div class="label">
+                        Duration
+                    </div>
+
+                    <div
+                        class="value"
+                        th:text="${program.duration}">
+                        6 Weeks
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Actions -->
+
+            <div class="actions">
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="enrollBtn"
+                    th:data-program-id="${program.id}">
+
+                    Enroll Now
+
+                </button>
+
+
+                <a
+                    class="btn btn-outline"
+                    th:href="@{/programs}">
+
+                    Back to Programs
+
+                </a>
+
+            </div>
+
+
+            <!-- Enrollment Notification -->
+
+            <div
+                class="notice"
+                id="enrollNotice"
+                role="status">
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================
+     ENROLLMENT JAVASCRIPT
+========================== -->
+
+<script>
+
+    const enrollButton =
+        document.getElementById("enrollBtn");
+
+    const enrollNotice =
+        document.getElementById("enrollNotice");
+
+
+    enrollButton.addEventListener("click", async function () {
+
+        const button = this;
+
+        const programId =
+            button.getAttribute("data-program-id");
+
+
+        /*
+         * Clear previous message
+         */
+
+        enrollNotice.textContent = "";
+
+        enrollNotice.classList.remove(
+            "show",
+            "success",
+            "error"
+        );
+
+
+        /*
+         * Validate program ID
+         */
+
+        if (!programId) {
+
+            enrollNotice.textContent =
+                "Program information is missing.";
+
+            enrollNotice.classList.add(
+                "show",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /*
+         * Disable button while request is running
+         */
+
+        button.disabled = true;
+
+        button.textContent =
+            "Enrolling...";
+
+
+        try {
+
+            /*
+             * Send enrollment request
+             *
+             * Example:
+             * POST /api/enrollments/1
+             */
+
+            const response = await fetch(
+                "/api/enrollments/" + programId,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+
+            /*
+             * Read server response
+             */
+
+            const result =
+                await response.text();
+
+
+            /*
+             * Successful enrollment
+             */
+
+            if (response.ok) {
+
+                enrollNotice.textContent =
+                    "You have successfully enrolled in this program!";
+
+                enrollNotice.classList.add(
+                    "show",
+                    "success"
+                );
+
+                button.textContent =
+                    "Enrolled ✓";
+
+                button.disabled = true;
+
+                return;
+            }
+
+
+            /*
+             * Authentication problem
+             */
+
+            if (
+                response.status === 401 ||
+                response.status === 403
+            ) {
+
+                enrollNotice.textContent =
+                    "Please login first to enroll in this program.";
+
+                enrollNotice.classList.add(
+                    "show",
+                    "error"
+                );
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Enroll Now";
+
+                return;
+            }
+
+
+            /*
+             * Already enrolled / other backend error
+             */
+
+            enrollNotice.textContent =
+                result ||
+                "Unable to enroll in this program.";
+
+            enrollNotice.classList.add(
+                "show",
+                "error"
+            );
+
+            button.disabled = false;
+
+            button.textContent =
+                "Enroll Now";
+
+
+        } catch (error) {
+
+            /*
+             * Network / server error
+             */
+
+            console.error(
+                "Enrollment error:",
+                error
+            );
+
+
+            enrollNotice.textContent =
+                "Something went wrong. Please try again.";
+
+            enrollNotice.classList.add(
+                "show",
+                "error"
+            );
+
+
+            button.disabled = false;
+
+            button.textContent =
+                "Enroll Now";
+        }
+
+    });
+
+</script>
+
+</body>
+
+</html>
