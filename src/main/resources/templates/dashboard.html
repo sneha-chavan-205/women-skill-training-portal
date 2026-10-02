@@ -363,21 +363,22 @@
       </section>
 
       <!-- ============ STATS ============ -->
+      <!-- MODIFIED: first three stats now have ids and start at 0; values are filled from /api/enrollments/my -->
       <section class="stats" aria-label="Learning statistics">
         <article class="stat reveal">
           <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-book"/></svg></span></div>
-          <b data-count="3">0</b><span class="lbl">Enrolled Programs</span>
-          <div class="mini"><i data-w="100"></i></div>
+          <b id="statEnrolled" data-count="0">0</b><span class="lbl">Enrolled Programs</span>
+          <div class="mini"><i data-w="0"></i></div>
         </article>
         <article class="stat reveal">
           <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-award"/></svg></span></div>
-          <b data-count="1">0</b><span class="lbl">Completed Programs</span>
-          <div class="mini"><i data-w="33"></i></div>
+          <b id="statCompleted" data-count="0">0</b><span class="lbl">Completed Programs</span>
+          <div class="mini"><i data-w="0"></i></div>
         </article>
         <article class="stat reveal">
           <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-play"/></svg></span></div>
-          <b data-count="2">0</b><span class="lbl">In Progress</span>
-          <div class="mini"><i data-w="67"></i></div>
+          <b id="statInProgress" data-count="0">0</b><span class="lbl">In Progress</span>
+          <div class="mini"><i data-w="0"></i></div>
         </article>
         <article class="stat reveal">
           <div class="stat-top"><span class="s-ico"><svg class="i"><use href="#i-clock"/></svg></span></div>
@@ -387,85 +388,13 @@
       </section>
 
       <!-- ============ MY LEARNING ============ -->
+      <!-- MODIFIED: hardcoded cards (and the duplicate id="learning" section) replaced by one dynamic section -->
       <section class="block" id="learning" aria-labelledby="learning-title">
         <div class="sec-head reveal"><div><h2 id="learning-title">My Learning</h2><p>Pick up right where you left off.</p></div></div>
-        <div class="grid3">
-          <article class="card reveal">
-            <div class="thumb" aria-hidden="true"><svg class="i"><use href="#i-monitor"/></svg></div>
-            <div class="card-body">
-              <span class="status"><svg class="i"><use href="#i-play"/></svg>In Progress</span>
-              <h3 style="margin-top:12px">Digital Literacy</h3>
-              <p>Essential computer, internet and digital tool skills.</p>
-              <div class="prog-row"><span>Progress</span><strong>75%</strong></div>
-              <div class="bar" role="progressbar" aria-label="Digital Literacy progress" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"><i data-w="75"></i></div>
-              <button type="button" class="btn btn-primary btn-block" data-soon="Course module">Continue Learning</button>
-            </div>
-          </article>
-          <article class="card reveal">
-            <div class="thumb t2" aria-hidden="true"><svg class="i"><use href="#i-code"/></svg></div>
-            <div class="card-body">
-              <span class="status"><svg class="i"><use href="#i-play"/></svg>In Progress</span>
-              <h3 style="margin-top:12px">Web Development Fundamentals</h3>
-              <p>HTML, CSS and JavaScript basics for building websites.</p>
-              <div class="prog-row"><span>Progress</span><strong>45%</strong></div>
-              <div class="bar" role="progressbar" aria-label="Web Development Fundamentals progress" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"><i data-w="45"></i></div>
-              <button type="button" class="btn btn-primary btn-block" data-soon="Course module">Continue Learning</button>
-            </div>
-          </article>
-          <article class="card reveal">
-            <div class="thumb t3" aria-hidden="true"><svg class="i"><use href="#i-coin"/></svg></div>
-            <div class="card-body">
-              <span class="status done"><svg class="i"><use href="#i-check"/></svg>Completed</span>
-              <h3 style="margin-top:12px">Financial Literacy</h3>
-              <p>Saving, budgeting and banking essentials for independence.</p>
-              <div class="prog-row"><span>Progress</span><strong>100%</strong></div>
-              <div class="bar done" role="progressbar" aria-label="Financial Literacy progress" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><i data-w="100"></i></div>
-              <button type="button" class="btn btn-outline btn-block" data-soon="Certificate">View Certificate</button>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- ============ SKILL PROGRAMS ============ -->
-      <section class="block" id="programs" aria-labelledby="programs-title">
-        <div class="sec-head reveal"><div><h2 id="programs-title">Explore Skill Programs</h2><p>Build practical skills that can create real opportunities.</p></div></div>
-        <div class="grid3">
-          <article class="card reveal"><div class="card-body">
-            <span class="p-ico"><svg class="i"><use href="#i-monitor"/></svg></span>
-            <h3>Digital Literacy</h3><p>Learn essential digital skills for everyday life and employment.</p>
-            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>4 weeks</span></div>
-            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
-          </div></article>
-          <article class="card reveal"><div class="card-body">
-            <span class="p-ico"><svg class="i"><use href="#i-code"/></svg></span>
-            <h3>Web Development</h3><p>Learn HTML, CSS, JavaScript and modern web development fundamentals.</p>
-            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Intermediate</span><span><svg class="i"><use href="#i-clock"/></svg>8 weeks</span></div>
-            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
-          </div></article>
-          <article class="card reveal"><div class="card-body">
-            <span class="p-ico"><svg class="i"><use href="#i-mega"/></svg></span>
-            <h3>Digital Marketing</h3><p>Build skills in social media, branding and online marketing.</p>
-            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>6 weeks</span></div>
-            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
-          </div></article>
-          <article class="card reveal"><div class="card-body">
-            <span class="p-ico"><svg class="i"><use href="#i-rocket"/></svg></span>
-            <h3>Entrepreneurship</h3><p>Learn how to turn ideas into sustainable business opportunities.</p>
-            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Intermediate</span><span><svg class="i"><use href="#i-clock"/></svg>8 weeks</span></div>
-            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
-          </div></article>
-          <article class="card reveal"><div class="card-body">
-            <span class="p-ico"><svg class="i"><use href="#i-coin"/></svg></span>
-            <h3>Financial Literacy</h3><p>Understand saving, budgeting, banking and financial planning.</p>
-            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>5 weeks</span></div>
-            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
-          </div></article>
-          <article class="card reveal"><div class="card-body">
-            <span class="p-ico"><svg class="i"><use href="#i-chat"/></svg></span>
-            <h3>Communication Skills</h3><p>Improve communication, confidence, presentation and workplace skills.</p>
-            <div class="meta"><span><svg class="i"><use href="#i-chart"/></svg>Beginner</span><span><svg class="i"><use href="#i-clock"/></svg>4 weeks</span></div>
-            <button type="button" class="btn btn-outline btn-block" data-soon="Program details">View Program</button>
-          </div></article>
+        <div class="grid3" id="myLearningGrid">
+          <div class="card" style="grid-column:1 / -1">
+            <div class="card-body"><p style="margin:0">Loading your enrolled programs...</p></div>
+          </div>
         </div>
       </section>
 
@@ -545,7 +474,8 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2600);
       }
-      $$('[data-soon]').forEach(function (el) {
+      /* MODIFIED: click handler extracted into bindSoon() so dynamically created buttons can reuse it */
+      function bindSoon(el) {
         el.addEventListener('click', function (e) {
           e.preventDefault();
           var what = el.getAttribute('data-soon');
@@ -553,7 +483,8 @@
           closeDrawer();
           closeMenus();
         });
-      });
+      }
+      $$('[data-soon]').forEach(bindSoon);
 
       /* ---- Mobile sidebar drawer ---- */
       function openDrawer() { sidebar.classList.add('open'); overlay.classList.add('show'); menuBtn.setAttribute('aria-expanded', 'true'); }
@@ -620,9 +551,12 @@
       function animateBars(root) {
         $$('[data-w]', root).forEach(function (el) { el.style.width = el.getAttribute('data-w') + '%'; });
       }
+      /* MODIFIED: a newer countUp on the same element cancels the older one (needed when API data arrives after first animation) */
       function countUp(el) {
         var target = +el.getAttribute('data-count'), start = null, dur = 1100;
+        var runId = el._cuId = (el._cuId || 0) + 1;
         function tick(ts) {
+          if (el._cuId !== runId) return;
           if (!start) start = ts;
           var p = Math.min((ts - start) / dur, 1);
           el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
@@ -643,9 +577,11 @@
         requestAnimationFrame(tick);
       }
 
+      /* MODIFIED: io is declared outside the if-block so dynamic cards can be observed too */
+      var io = null;
       var reveals = $$('.reveal');
       if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function (entries) {
+        io = new IntersectionObserver(function (entries) {
           entries.forEach(function (en) {
             if (!en.isIntersecting) return;
             var t = en.target;
@@ -662,6 +598,167 @@
         $$('[data-count]').forEach(function (el) { el.textContent = el.getAttribute('data-count'); });
         $('#ringNum').textContent = '68%';
       }
+
+      /* =====================================================
+         NEW: My Learning + dashboard stats from /api/enrollments/my
+         ===================================================== */
+      var grid = $('#myLearningGrid');
+      var SVG_NS = 'http://www.w3.org/2000/svg';
+      var CATEGORY_ICON = {
+        'digital skills': 'i-mega',
+        'technology': 'i-code',
+        'fashion & design': 'i-cap',
+        'beauty & wellness': 'i-heart',
+        'business': 'i-rocket',
+        'finance': 'i-coin',
+        'communication': 'i-chat'
+      };
+      var THUMB_VARIANT = ['', ' t2', ' t3'];
+
+      function mk(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text !== undefined && text !== null) n.textContent = text;
+        return n;
+      }
+      function icon(id) {
+        var svg = document.createElementNS(SVG_NS, 'svg');
+        svg.setAttribute('class', 'i');
+        var use = document.createElementNS(SVG_NS, 'use');
+        use.setAttribute('href', '#' + id);
+        svg.appendChild(use);
+        return svg;
+      }
+      function statusLabel(status) {
+        if (status === 'ACTIVE') return 'In Progress';
+        if (status === 'COMPLETED') return 'Completed';
+        if (!status) return 'In Progress';
+        var s = status.replace(/_/g, ' ').toLowerCase();
+        return s.charAt(0).toUpperCase() + s.slice(1);
+      }
+      function metaItem(iconId, text) {
+        var s = mk('span');
+        s.appendChild(icon(iconId));
+        s.appendChild(document.createTextNode(text));
+        return s;
+      }
+
+      function buildCard(enr, index) {
+        var p = enr.program || {};
+        var status = String(enr.status || '').toUpperCase();
+        var done = status === 'COMPLETED';
+        var progress = Math.max(0, Math.min(100, Number(enr.progress) || 0));
+        var title = p.title || 'Untitled program';
+
+        var card = mk('article', 'card reveal');
+
+        var thumb = mk('div', 'thumb' + THUMB_VARIANT[index % 3]);
+        thumb.setAttribute('aria-hidden', 'true');
+        thumb.appendChild(icon(CATEGORY_ICON[String(p.category || '').toLowerCase()] || 'i-book'));
+        card.appendChild(thumb);
+
+        var body = mk('div', 'card-body');
+
+        var st = mk('span', 'status' + (done ? ' done' : ''));
+        st.appendChild(icon(done ? 'i-check' : 'i-play'));
+        st.appendChild(document.createTextNode(statusLabel(status)));
+        body.appendChild(st);
+
+        var h3 = mk('h3', null, title);
+        h3.style.marginTop = '12px';
+        body.appendChild(h3);
+
+        body.appendChild(mk('p', null, p.description || ''));
+
+        if (p.category || p.level || p.duration) {
+          var meta = mk('div', 'meta');
+          if (p.category) meta.appendChild(metaItem('i-book', p.category));
+          if (p.level) meta.appendChild(metaItem('i-chart', p.level));
+          if (p.duration) meta.appendChild(metaItem('i-clock', p.duration));
+          body.appendChild(meta);
+        }
+
+        var row = mk('div', 'prog-row');
+        row.appendChild(mk('span', null, 'Progress'));
+        row.appendChild(mk('strong', null, progress + '%'));
+        body.appendChild(row);
+
+        var bar = mk('div', 'bar' + (done ? ' done' : ''));
+        bar.setAttribute('role', 'progressbar');
+        bar.setAttribute('aria-label', title + ' progress');
+        bar.setAttribute('aria-valuenow', progress);
+        bar.setAttribute('aria-valuemin', '0');
+        bar.setAttribute('aria-valuemax', '100');
+        var fill = document.createElement('i');
+        fill.setAttribute('data-w', progress);
+        bar.appendChild(fill);
+        body.appendChild(bar);
+
+        var btn = mk('button', done ? 'btn btn-outline btn-block' : 'btn btn-primary btn-block',
+                     done ? 'View Certificate' : 'Continue Learning');
+        btn.type = 'button';
+        btn.setAttribute('data-soon', done ? 'Certificate' : 'Course module');
+        bindSoon(btn);
+        body.appendChild(btn);
+
+        card.appendChild(body);
+        return card;
+      }
+
+      function showMessage(text) {
+        grid.textContent = '';
+        var c = mk('div', 'card');
+        c.style.gridColumn = '1 / -1';
+        var b = mk('div', 'card-body');
+        var msg = mk('p', null, text);
+        msg.style.margin = '0';
+        b.appendChild(msg);
+        c.appendChild(b);
+        grid.appendChild(c);
+      }
+
+      function setStat(id, value, total) {
+        var b = $('#' + id);
+        var fill = $('.mini i', b.parentNode);
+        b.setAttribute('data-count', value);
+        fill.setAttribute('data-w', total ? Math.round(value / total * 100) : 0);
+        if (b.parentNode.classList.contains('in')) {   // already revealed: animate now
+          countUp(b);
+          fill.style.width = fill.getAttribute('data-w') + '%';
+        }
+      }
+
+      function renderEnrollments(list) {
+        var enrolled = list.length;
+        var completed = list.filter(function (e) { return String(e.status).toUpperCase() === 'COMPLETED'; }).length;
+        var inProgress = list.filter(function (e) { return String(e.status).toUpperCase() === 'ACTIVE'; }).length;
+        setStat('statEnrolled', enrolled, enrolled);
+        setStat('statCompleted', completed, enrolled);
+        setStat('statInProgress', inProgress, enrolled);
+
+        if (!enrolled) { showMessage('You have not enrolled in any programs yet.'); return; }
+
+        grid.textContent = '';
+        list.forEach(function (enr, i) {
+          var card = buildCard(enr, i);
+          grid.appendChild(card);
+          if (io) { io.observe(card); }
+          else { card.classList.add('in'); animateBars(card); }
+        });
+      }
+
+      fetch('/api/enrollments/my', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!Array.isArray(data)) throw new Error('Unexpected response');
+          renderEnrollments(data);
+        })
+        .catch(function () {
+          showMessage('Unable to load your enrolled programs. Please refresh the page.');
+        });
     })();
   </script>
 </body>
