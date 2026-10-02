@@ -289,14 +289,43 @@
     </a>
 
     <nav class="side-nav" id="sideNav">
-      <a href="#top" class="active" data-spy="top" aria-current="page"><svg class="i"><use href="#i-home"/></svg>Dashboard</a>
-      <a href="#programs" data-spy="programs"><svg class="i"><use href="#i-grid"/></svg>Skill Programs</a>
-      <a href="#learning" data-spy="learning"><svg class="i"><use href="#i-book"/></svg>My Learning</a>
-      <a href="#progress" data-spy="progress"><svg class="i"><use href="#i-chart"/></svg>My Progress</a>
-      <button type="button" data-soon="Certificates"><svg class="i"><use href="#i-award"/></svg>Certificates</button>
-      <button type="button" data-soon="Profile"><svg class="i"><use href="#i-user"/></svg>Profile</button>
-      <button type="button" data-soon="Settings"><svg class="i"><use href="#i-gear"/></svg>Settings</button>
-    </nav>
+
+    <a href="/dashboard" class="active">
+        <svg class="i"><use href="#i-home"></use></svg>
+        Dashboard
+    </a>
+
+    <a href="/programs">
+        <svg class="i"><use href="#i-grid"></use></svg>
+        Skill Programs
+    </a>
+
+    <a href="/learning">
+        <svg class="i"><use href="#i-book"></use></svg>
+        My Learning
+    </a>
+
+    <a href="/progress">
+        <svg class="i"><use href="#i-chart"></use></svg>
+        My Progress
+    </a>
+
+    <button type="button" data-soon="Certificates">
+        <svg class="i"><use href="#i-award"></use></svg>
+        Certificates
+    </button>
+
+    <button type="button" data-soon="Profile">
+        <svg class="i"><use href="#i-user"></use></svg>
+        Profile
+    </button>
+
+    <button type="button" data-soon="Settings">
+        <svg class="i"><use href="#i-gear"></use></svg>
+        Settings
+    </button>
+
+</nav>
 
     <div class="side-foot">
       <button type="button" class="logout-btn"><svg class="i"><use href="#i-logout"/></svg>Logout</button>
@@ -352,7 +381,7 @@
         <div>
           <h1 id="welcome-title">Welcome back, Sneha! 👋</h1>
           <p>Continue your learning journey, build new skills and take the next step toward your goals.</p>
-          <a href="#programs" class="btn btn-primary">Explore Skill Programs <svg class="i"><use href="#i-arrow"/></svg></a>
+          <a href="/programs" class="btn btn-primary">Explore Skill Programs <svg class="i"><use href="#i-arrow"/></svg></a>
         </div>
         <div class="w-art" aria-hidden="true">
           <div class="disc"></div>
@@ -445,7 +474,7 @@
         <div><strong>Women Skill Training Portal</strong><p>Empowering women through skills, knowledge and opportunity.</p></div>
         <nav class="foot-links" aria-label="Footer">
           <a th:href="@{/}" href="/">About</a>
-          <a href="#programs">Programs</a>
+          <a href="/programs">Programs</a>
           <a href="#top" data-soon="Contact">Contact</a>
           <a href="#top" data-soon="Privacy">Privacy</a>
         </nav>
