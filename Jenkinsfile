@@ -19,11 +19,14 @@ pipeline {
         }
 
         stage('Test') {
-            steps {
-                echo 'Running application tests...'
-                bat 'mvn test'
+    steps {
+        echo 'Running application tests...'
+
+        withCredentials([string(credentialsId: 'mysql-db-password', variable: 'DB_PASSWORD')]) {
+            bat 'mvn test'
             }
-        }
+           }
+       }
 
         stage('Package') {
             steps {
