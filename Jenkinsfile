@@ -15,6 +15,11 @@ pipeline {
         // =====================================================
         stage('Checkout') {
             steps {
+
+                echo '=========================================='
+                echo 'CHECKOUT'
+                echo '=========================================='
+
                 echo 'Checking out Women Skill Training Portal source code...'
 
                 checkout scm
@@ -27,6 +32,11 @@ pipeline {
         // =====================================================
         stage('Build') {
             steps {
+
+                echo '=========================================='
+                echo 'BUILD'
+                echo '=========================================='
+
                 echo 'Building the application...'
 
                 bat 'mvn clean compile -DskipTests'
@@ -39,6 +49,10 @@ pipeline {
         // =====================================================
         stage('Test') {
             steps {
+
+                echo '=========================================='
+                echo 'TEST'
+                echo '=========================================='
 
                 echo 'Running application tests...'
 
@@ -61,6 +75,10 @@ pipeline {
         stage('Package') {
             steps {
 
+                echo '=========================================='
+                echo 'PACKAGE'
+                echo '=========================================='
+
                 echo 'Packaging Spring Boot application...'
 
                 bat 'mvn clean package -DskipTests'
@@ -76,6 +94,7 @@ pipeline {
 
                 echo.
                 echo Checking executable Spring Boot JAR...
+
                 jar tf target\\women-skill-training-portal-0.0.1-SNAPSHOT.jar | findstr "BOOT-INF"
 
                 echo.
@@ -90,6 +109,10 @@ pipeline {
         // =====================================================
         stage('Archive Artifact') {
             steps {
+
+                echo '=========================================='
+                echo 'ARCHIVE ARTIFACT'
+                echo '=========================================='
 
                 echo 'Archiving generated JAR...'
 
@@ -107,36 +130,31 @@ pipeline {
         stage('Deploy') {
             steps {
 
-                echo 'Deploying application...'
+                echo '=========================================='
+                echo 'DEPLOY'
+                echo '=========================================='
 
+                echo 'Deploying Spring Boot application...'
 
-                // -------------------------------------------------
-                // Create deployment directory and copy JAR
-                // -------------------------------------------------
+                // ---------------------------------------------
+                // Create deployment directory
+                // ---------------------------------------------
                 bat '''
-                echo ==========================================
-                echo PREPARING DEPLOYMENT DIRECTORY
-                echo ==========================================
-
                 if not exist "%DEPLOY_DIR%" mkdir "%DEPLOY_DIR%"
-
-                echo.
-                echo Copying Spring Boot executable JAR...
-
-                copy /Y "target\\women-skill-training-portal-0.0.1-SNAPSHOT.jar" "%DEPLOY_DIR%\\%APP_NAME%.jar"
-
-                echo.
-                echo ==========================================
-                echo DEPLOYED JAR DETAILS
-                echo ==========================================
-
-                dir "%DEPLOY_DIR%\\%APP_NAME%.jar"
                 '''
 
+                // ---------------------------------------------
+                // Copy JAR
+                // ---------------------------------------------
+                bat '''
+                echo Copying application JAR...
 
-                // -------------------------------------------------
-                // Database credential
-                // -------------------------------------------------
+                copy /Y target\\women-skill-training-portal-0.0.1-SNAPSHOT.jar "%DEPLOY_DIR%\\%APP_NAME%.jar"
+                '''
+
+                // ---------------------------------------------
+                // Database credentials
+                // ---------------------------------------------
                 withCredentials([
                     string(
                         credentialsId: 'mysql-db-password',
@@ -145,145 +163,224 @@ pipeline {
                 ]) {
 
                     powershell '''
-                    $ErrorActionPreference = "Stop"
+                    $pidFile = "$env:DEPLOY_DIR\\app.pid"
+                    $outLog = "$env:DEPLOY_DIR\\app.out.log"
+                    $errLog = "$env:DEPLOY_DIR\\app.err.log"
 
-                    $deployDir = $env:DEPLOY_DIR
-                    $jarPath = "$deployDir\\$env:APP_NAME.jar"
-                    $pidFile = "$deployDir\\app.pid"
+                    $jarPath = "$env:DEPLOY_DIR\\$env:APP_NAME.jar"
 
                     Write-Host "=========================================="
-                    Write-Host "WSTP APPLICATION DEPLOYMENT"
+                    Write-Host "STOPPING PREVIOUS APPLICATION"
                     Write-Host "=========================================="
 
-                    Write-Host "Deployment directory: $deployDir"
-                    Write-Host "JAR path: $jarPath"
-                    Write-Host "Server port: $env:SERVER_PORT"
-
-                    # -------------------------------------------------
-                    # Verify JAR exists
-                    # -------------------------------------------------
-
-                    if (!(Test-Path $jarPath)) {
-                        throw "Deployment JAR was not found: $jarPath"
-                    }
-
-                    # -------------------------------------------------
-                    # Verify JAR is not suspiciously small
-                    # -------------------------------------------------
-
-                    $jar = Get-Item $jarPath
-
-                    Write-Host "JAR size: $($jar.Length) bytes"
-
-                    if ($jar.Length -lt 1000000) {
-                        throw "Deployment JAR appears invalid or incomplete. Size: $($jar.Length) bytes"
-                    }
-
-                    Write-Host "JAR size verification passed."
-
-                    # -------------------------------------------------
-                    # Stop previous application
-                    # -------------------------------------------------
-
+                    # Stop previous application if PID file exists
                     if (Test-Path $pidFile) {
 
                         $oldPid = Get-Content $pidFile
 
-                        Write-Host "Previous PID found: $oldPid"
+                        Write-Host "Previous PID: $oldPid"
 
                         try {
 
-                            Stop-Process `
-                                -Id $oldPid `
-                                -Force `
-                                -ErrorAction Stop
+                            $oldProcess = Get-Process -Id $oldPid -ErrorAction Stop
 
-                            Write-Host "Stopped previous application process: $oldPid"
+                            Stop-Process -Id $oldPid -Force
+
+                            Write-Host "Previous application stopped successfully."
 
                         }
                         catch {
 
-                            Write-Host "Previous process was not running."
+                            Write-Host "Previous application process was not running."
                         }
 
-                        Remove-Item $pidFile -Force
+                        Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
                     }
 
-                    # -------------------------------------------------
+
+                    Write-Host "=========================================="
+                    Write-Host "CLEANING OLD LOG FILES"
+                    Write-Host "=========================================="
+
+                    if (Test-Path $outLog) {
+                        Remove-Item $outLog -Force
+                    }
+
+                    if (Test-Path $errLog) {
+                        Remove-Item $errLog -Force
+                    }
+
+
+                    Write-Host "=========================================="
+                    Write-Host "STARTING SPRING BOOT APPLICATION"
+                    Write-Host "=========================================="
+
+                    Write-Host "JAR: $jarPath"
+                    Write-Host "PORT: $env:SERVER_PORT"
+
+
                     # Start Spring Boot application
-                    # -------------------------------------------------
-
-                    Write-Host "Starting Spring Boot application..."
-
-                    $arguments = "-jar `"$jarPath`" --server.port=$env:SERVER_PORT"
-
                     $process = Start-Process `
                         -FilePath "java" `
-                        -ArgumentList $arguments `
-                        -WorkingDirectory $deployDir `
+                        -ArgumentList "-jar `"$jarPath`" --server.port=$env:SERVER_PORT" `
+                        -WorkingDirectory $env:DEPLOY_DIR `
+                        -RedirectStandardOutput $outLog `
+                        -RedirectStandardError $errLog `
                         -PassThru
 
-                    # -------------------------------------------------
-                    # Save process ID
-                    # -------------------------------------------------
 
+                    # Save PID
                     $process.Id | Out-File $pidFile
 
-                    Write-Host "Application started."
+                    Write-Host "Spring Boot process started."
                     Write-Host "PID: $($process.Id)"
-                    Write-Host "URL: http://localhost:$env:SERVER_PORT"
 
-                    # -------------------------------------------------
-                    # Give Spring Boot time to start
-                    # -------------------------------------------------
-
-                    Write-Host "Waiting for application startup..."
-
-                    Start-Sleep -Seconds 10
-
-                    # -------------------------------------------------
-                    # Verify process
-                    # -------------------------------------------------
-
-                    $runningProcess = Get-Process `
-                        -Id $process.Id `
-                        -ErrorAction SilentlyContinue
-
-                    if ($null -eq $runningProcess) {
-
-                        throw "Spring Boot process stopped unexpectedly."
-
-                    }
-
-                    Write-Host "Spring Boot process is running."
-
-                    # -------------------------------------------------
-                    # Verify port
-                    # -------------------------------------------------
-
-                    $connection = Get-NetTCPConnection `
-                        -LocalPort $env:SERVER_PORT `
-                        -State Listen `
-                        -ErrorAction SilentlyContinue
-
-                    if ($null -eq $connection) {
-
-                        throw "Application is not listening on port $env:SERVER_PORT"
-
-                    }
-
-                    Write-Host "Port $env:SERVER_PORT is listening."
-
-                    # -------------------------------------------------
-                    # Final deployment information
-                    # -------------------------------------------------
 
                     Write-Host "=========================================="
-                    Write-Host "DEPLOYMENT SUCCESSFUL"
+                    Write-Host "WAITING FOR APPLICATION TO START"
                     Write-Host "=========================================="
-                    Write-Host "Application URL: http://localhost:$env:SERVER_PORT"
-                    Write-Host "Process ID: $($process.Id)"
-                    Write-Host "JAR: $jarPath"
+
+
+                    $maxAttempts = 30
+                    $started = $false
+
+
+                    for ($i = 1; $i -le $maxAttempts; $i++) {
+
+                        Start-Sleep -Seconds 2
+
+                        Write-Host "Checking application... Attempt $i/$maxAttempts"
+
+
+                        # Check whether Java process is still running
+                        $runningProcess = Get-Process `
+                            -Id $process.Id `
+                            -ErrorAction SilentlyContinue
+
+
+                        if (-not $runningProcess) {
+
+                            Write-Host ""
+                            Write-Host "=========================================="
+                            Write-Host "SPRING BOOT PROCESS STOPPED"
+                            Write-Host "=========================================="
+
+                            if (Test-Path $outLog) {
+
+                                Write-Host ""
+                                Write-Host "APPLICATION OUTPUT:"
+                                Get-Content $outLog -Tail 100
+                            }
+
+                            if (Test-Path $errLog) {
+
+                                Write-Host ""
+                                Write-Host "APPLICATION ERRORS:"
+                                Get-Content $errLog -Tail 100
+                            }
+
+                            exit 1
+                        }
+
+
+                        # Check HTTP connection
+                        try {
+
+                            $response = Invoke-WebRequest `
+                                -Uri "http://localhost:$env:SERVER_PORT" `
+                                -UseBasicParsing `
+                                -TimeoutSec 3 `
+                                -ErrorAction Stop
+
+
+                            if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) {
+
+                                $started = $true
+
+                                Write-Host ""
+                                Write-Host "=========================================="
+                                Write-Host "APPLICATION IS RUNNING"
+                                Write-Host "=========================================="
+
+                                Write-Host "HTTP Status: $($response.StatusCode)"
+
+                                break
+                            }
+
+                        }
+                        catch {
+
+                            # Even a 4xx response means the web server is alive.
+                            if ($_.Exception.Response -ne $null) {
+
+                                $statusCode = [int]$_.Exception.Response.StatusCode
+
+                                if ($statusCode -ge 400 -and $statusCode -lt 500) {
+
+                                    $started = $true
+
+                                    Write-Host ""
+                                    Write-Host "Spring Boot is responding."
+                                    Write-Host "HTTP Status: $statusCode"
+
+                                    break
+                                }
+                            }
+
+                            Write-Host "Application not ready yet..."
+                        }
+                    }
+
+
+                    # -----------------------------------------
+                    # Deployment verification
+                    # -----------------------------------------
+                    if (-not $started) {
+
+                        Write-Host ""
+                        Write-Host "=========================================="
+                        Write-Host "DEPLOYMENT VERIFICATION FAILED"
+                        Write-Host "=========================================="
+
+                        Write-Host "Application did not respond on port $env:SERVER_PORT."
+
+                        Write-Host ""
+                        Write-Host "APPLICATION OUTPUT:"
+
+                        if (Test-Path $outLog) {
+                            Get-Content $outLog -Tail 100
+                        }
+
+                        Write-Host ""
+                        Write-Host "APPLICATION ERRORS:"
+
+                        if (Test-Path $errLog) {
+                            Get-Content $errLog -Tail 100
+                        }
+
+                        Stop-Process `
+                            -Id $process.Id `
+                            -Force `
+                            -ErrorAction SilentlyContinue
+
+                        exit 1
+                    }
+
+
+                    Write-Host ""
+                    Write-Host "=========================================="
+                    Write-Host "DEPLOYMENT VERIFIED SUCCESSFULLY"
+                    Write-Host "=========================================="
+
+                    Write-Host "Application URL:"
+                    Write-Host "http://localhost:$env:SERVER_PORT"
+
+                    Write-Host "Application PID:"
+                    Write-Host $process.Id
+
+                    Write-Host "Deployment directory:"
+                    Write-Host $env:DEPLOY_DIR
+
                     Write-Host "=========================================="
                     '''
                 }
@@ -305,7 +402,7 @@ pipeline {
 WSTP CI/CD PIPELINE SUCCESSFUL
 ==========================================
 
-Application deployed successfully.
+Application deployed and verified successfully.
 
 URL:
 http://localhost:8081
@@ -318,10 +415,12 @@ Jenkins has successfully completed:
 4. Package
 5. Archive Artifact
 6. Deploy
+7. Deployment Health Check
 
 ==========================================
 '''
         }
+
 
         failure {
 
@@ -332,13 +431,20 @@ WSTP CI/CD PIPELINE FAILED
 
 Check the Jenkins Console Output.
 
+The deployment logs are also available in:
+
+C:\\WSTP-Deployment
+
 ==========================================
 '''
         }
 
+
         always {
 
+            echo '=========================================='
             echo 'Pipeline execution completed.'
+            echo '=========================================='
         }
     }
 }
