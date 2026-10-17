@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        CHROMEDRIVER_PATH = 'C:\\Tools\\ChromeDriver\\chromedriver.exe'
+    }
+
     stages {
         stage('Checkout SCM') {
             steps {
@@ -40,10 +44,19 @@ pipeline {
                         echo ERROR: Configure MAVEN_OPTS to use the approved Maven local repository.
                         exit /b 1
                     )
+                    if not defined CHROMEDRIVER_PATH (
+                        echo ERROR: Configure CHROMEDRIVER_PATH for the Jenkins agent.
+                        exit /b 1
+                    )
+                    if not exist "%CHROMEDRIVER_PATH%" (
+                        echo ERROR: ChromeDriver was not found at CHROMEDRIVER_PATH.
+                        exit /b 1
+                    )
                     if not exist "%MAVEN_HOME%\\bin\\mvn.cmd" (
                         echo ERROR: mvn.cmd was not found under MAVEN_HOME.
                         exit /b 1
                     )
+                    "%CHROMEDRIVER_PATH%" --version
                     call "%MAVEN_HOME%\\bin\\mvn.cmd" -version
                     call "%MAVEN_HOME%\\bin\\mvn.cmd" -B clean verify
                 '''

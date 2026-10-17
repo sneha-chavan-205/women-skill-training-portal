@@ -17,6 +17,7 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -88,7 +89,19 @@ class PortalBrowserTests {
                 "--window-size=1440,1200",
                 "--no-first-run",
                 "--no-default-browser-check");
-        driver = new ChromeDriver(options); // Selenium Manager resolves and caches the matching driver.
+        String driverPath = System.getenv("CHROMEDRIVER_PATH");
+        if (driverPath != null && !driverPath.isBlank()) {
+            Path executable = Path.of(driverPath.trim());
+            if (!Files.isRegularFile(executable)) {
+                throw new IllegalStateException("CHROMEDRIVER_PATH does not point to a file: " + executable);
+            }
+            ChromeDriverService service = new ChromeDriverService.Builder()
+                    .usingDriverExecutable(executable.toFile())
+                    .build();
+            driver = new ChromeDriver(service, options);
+        } else {
+            driver = new ChromeDriver(options);
+        }
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
