@@ -1,0 +1,16 @@
+all:
+  children:
+    deployment:
+      hosts:
+        portal-host:
+          # Replace this reserved example hostname with your authorized host.
+          ansible_host: linux-deployment-host.example.invalid
+          ansible_user: deploy
+      vars:
+        deployment_root: /opt/wstp
+        compose_project_name: wstp-portal
+        app_port: 8081
+        app_bind_address: 127.0.0.1
+        app_image: women-skill-training-portal:week13
+        mysql_database: women_skill_training_portal
+        mysql_user: wstp_app

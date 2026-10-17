@@ -8,6 +8,8 @@ target/
 .env
 .env.*
 !.env.example
+ansible/vault.yml
+ansible/inventory/hosts.yml
 
 ### STS ###
 .apt_generated

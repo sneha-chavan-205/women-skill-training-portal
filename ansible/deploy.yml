@@ -1,0 +1,240 @@
+---
+- name: Prepare and deploy the Women Skill Training Portal
+  hosts: deployment
+  become: true
+  gather_facts: true
+
+  vars:
+    deployment_root: /opt/wstp
+    compose_project_name: wstp-portal
+    app_port: 8081
+    app_bind_address: 127.0.0.1
+    app_image: women-skill-training-portal:week13
+    mysql_database: women_skill_training_portal
+    mysql_user: wstp_app
+    docker_architecture_map:
+      x86_64: amd64
+      aarch64: arm64
+      armv7l: armhf
+    docker_distribution: "{{ ansible_distribution | lower }}"
+    docker_architecture: "{{ docker_architecture_map[ansible_architecture] | default('unsupported') }}"
+
+  vars_prompt:
+    - name: mysql_password
+      prompt: MySQL application password (at least 12 characters)
+      private: true
+    - name: mysql_root_password
+      prompt: MySQL root password (at least 12 characters)
+      private: true
+
+  pre_tasks:
+    - name: Validate supported Linux distribution and architecture
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution in ['Debian', 'Ubuntu']
+          - docker_architecture != 'unsupported'
+        fail_msg: This playbook supports Debian or Ubuntu on x86_64, aarch64, or armv7l.
+
+    - name: Validate deployment settings and prompted secrets
+      ansible.builtin.assert:
+        that:
+          - deployment_root is match('^/')
+          - compose_project_name is match('^[a-z0-9][a-z0-9_-]*$')
+          - app_port | int >= 1
+          - app_port | int <= 65535
+          - app_bind_address | length > 0
+          - app_image is match('^[A-Za-z0-9._/-]+:[A-Za-z0-9._-]+$')
+          - mysql_database is match('^[A-Za-z0-9_]+$')
+          - mysql_user is match('^[A-Za-z0-9_]+$')
+          - mysql_password | length >= 12
+          - mysql_root_password | length >= 12
+        fail_msg: Check inventory settings and provide both database passwords with at least 12 characters.
+
+  tasks:
+    - name: Install APT prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Check for Docker CLI
+      ansible.builtin.command:
+        argv:
+          - docker
+          - --version
+      register: docker_cli
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Check for Docker Compose v2
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - version
+          - --short
+      register: docker_compose
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Check for conflicting legacy Docker packages before installing Docker CE
+      ansible.builtin.shell: |
+        dpkg-query -W -f='${binary:Package}\n' 2>/dev/null |
+          grep -E '^(docker.io|docker-compose|docker-doc|podman-docker|containerd|runc)$' || true
+      register: legacy_docker_packages
+      changed_when: false
+      check_mode: false
+      when: docker_cli.rc != 0
+
+    - name: Refuse to replace conflicting Docker packages automatically
+      ansible.builtin.assert:
+        that:
+          - legacy_docker_packages.stdout | trim | length == 0
+        fail_msg: Remove or migrate conflicting Docker packages manually before installing Docker CE.
+      when: docker_cli.rc != 0
+
+    - name: Create APT keyring directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      when: docker_cli.rc != 0 or docker_compose.rc != 0
+
+    - name: Download Docker repository signing key
+      ansible.builtin.get_url:
+        url: "https://download.docker.com/linux/{{ docker_distribution }}/gpg"
+        dest: /etc/apt/keyrings/docker.asc
+        owner: root
+        group: root
+        mode: '0644'
+      when: docker_cli.rc != 0 or docker_compose.rc != 0
+
+    - name: Configure Docker's official APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ docker_architecture }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ docker_distribution }} {{ ansible_distribution_release }} stable"
+        filename: docker
+        state: present
+        update_cache: true
+      when: docker_cli.rc != 0 or docker_compose.rc != 0
+
+    - name: Install Docker Engine and Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+      when: docker_cli.rc != 0
+
+    - name: Install Compose plugin for an existing Docker CLI
+      ansible.builtin.apt:
+        name: docker-compose-plugin
+        state: present
+        update_cache: true
+      when: docker_cli.rc == 0 and docker_compose.rc != 0
+
+    - name: Enable and start Docker Engine
+      ansible.builtin.systemd_service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Verify Docker Engine is reachable
+      ansible.builtin.command:
+        argv:
+          - docker
+          - info
+      register: docker_engine_info
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Require a reachable Docker Engine and Compose v2.20 or newer
+      ansible.builtin.assert:
+        that:
+          - docker_engine_info.rc == 0
+          - docker_compose.rc == 0
+          - docker_compose.stdout | regex_replace('^v', '') is version('2.20.0', '>=')
+        fail_msg: Ensure the Docker daemon is running and Compose v2.20 or newer is available to root.
+
+    - name: Create application deployment directory
+      ansible.builtin.file:
+        path: "{{ deployment_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Copy Docker build and Compose configuration
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../{{ item.src }}"
+        dest: "{{ deployment_root }}/{{ item.dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - { src: Dockerfile, dest: Dockerfile }
+        - { src: .dockerignore, dest: .dockerignore }
+        - { src: compose.yaml, dest: compose.yaml }
+        - { src: pom.xml, dest: pom.xml }
+
+    - name: Copy application source tree
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../src/"
+        dest: "{{ deployment_root }}/src/"
+        owner: root
+        group: root
+        mode: preserve
+
+    - name: Build and start the isolated Compose deployment
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - --project-name
+          - "{{ compose_project_name }}"
+          - up
+          - --detach
+          - --build
+          - --wait
+          - --wait-timeout
+          - '180'
+      args:
+        chdir: "{{ deployment_root }}"
+      environment:
+        APP_IMAGE: "{{ app_image }}"
+        APP_PORT: "{{ app_port }}"
+        APP_BIND_ADDRESS: "{{ app_bind_address }}"
+        MYSQL_DATABASE: "{{ mysql_database }}"
+        MYSQL_USER: "{{ mysql_user }}"
+        MYSQL_PASSWORD: "{{ mysql_password }}"
+        MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+      register: compose_deployment
+      changed_when: >-
+        'Created' in compose_deployment.stdout or
+        'Recreated' in compose_deployment.stdout or
+        'Started' in compose_deployment.stdout
+      no_log: true
+
+    - name: Verify application responds successfully
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ app_port }}/"
+        method: GET
+        status_code: 200
+        return_content: false
+      register: app_health
+      retries: 30
+      delay: 5
+      until: app_health.status | default(0) == 200
+      changed_when: false
