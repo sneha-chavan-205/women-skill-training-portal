@@ -4,6 +4,11 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Local deployment environment; keep only the safe template in Git.
+.env
+.env.*
+!.env.example
+
 ### STS ###
 .apt_generated
 .classpath

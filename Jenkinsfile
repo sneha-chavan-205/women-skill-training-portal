@@ -62,6 +62,43 @@ pipeline {
                 '''
             }
         }
+
+        stage('Docker image and local deployment') {
+            steps {
+                script {
+                    def dockerStatus = bat(returnStatus: true, script: 'docker info >NUL 2>&1')
+                    if (dockerStatus != 0) {
+                        echo 'Docker engine is not accessible to this Jenkins agent; skipping image build and local deployment.'
+                    } else {
+                        def imageTag = "women-skill-training-portal:${env.BUILD_NUMBER}"
+                        def composeProject = "wstp-jenkins-${env.BUILD_NUMBER}"
+                        withEnv([
+                            "APP_IMAGE=${imageTag}",
+                            "APP_PORT=0",
+                            "COMPOSE_PROJECT_NAME=${composeProject}",
+                            "MYSQL_DATABASE=wstp_ci_${env.BUILD_NUMBER}",
+                            "MYSQL_USER=wstp_ci",
+                            "MYSQL_PASSWORD=ci-${env.BUILD_TAG}",
+                            "MYSQL_ROOT_PASSWORD=ci-root-${env.BUILD_TAG}"
+                        ]) {
+                            bat '''
+                                docker build --tag "%APP_IMAGE%" .
+                                if errorlevel 1 exit /b 1
+                                docker compose -p "%COMPOSE_PROJECT_NAME%" up --detach --no-build
+                                if errorlevel 1 exit /b 1
+                                for /L %%i in (1,1,30) do (
+                                    docker compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
+                                    if not errorlevel 1 exit /b 0
+                                    timeout /t 2 /nobreak >NUL
+                                )
+                                docker compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app
+                                exit /b 1
+                            '''
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {

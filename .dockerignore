@@ -1,0 +1,6 @@
+# Only send the Maven descriptor and source tree; this excludes .git, target,
+# IDE files, local environment files, secrets, and unrelated workspace files.
+**
+!pom.xml
+!src/
+!src/**
