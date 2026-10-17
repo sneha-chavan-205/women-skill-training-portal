@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -126,7 +127,16 @@ class PortalBrowserTests {
             driver.findElement(By.id("name")).sendKeys("Selenium Registration Learner");
             driver.findElement(By.id("email")).sendKeys("selenium.registration@example.test");
             driver.findElement(By.id("password")).sendKeys(TEST_PASSWORD);
-            driver.findElement(By.id("confirm")).sendKeys(TEST_PASSWORD);
+            WebElement confirm = driver.findElement(By.id("confirm"));
+            confirm.sendKeys("MismatchPassword21");
+            driver.findElement(By.id("submitBtn")).click();
+
+            assertTrue(wait.until(
+                    ExpectedConditions.textToBe(By.id("confirmErr"), "Passwords do not match.")));
+            assertFalse(userRepository.existsByEmail("selenium.registration@example.test"));
+
+            confirm.clear();
+            confirm.sendKeys(TEST_PASSWORD);
             driver.findElement(By.id("submitBtn")).click();
             assertTrue(wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("continueBtn"))).isDisplayed());
             assertTrue(userRepository.existsByEmail("selenium.registration@example.test"));
@@ -134,8 +144,12 @@ class PortalBrowserTests {
     }
 
     @Test
-    void signsInAndRedirectsHome() throws Throwable {
+    void redirectsAnonymousLearnerToLoginThenSignsIn() throws Throwable {
         withFailureScreenshot(() -> {
+            driver.get(baseUrl() + "/dashboard");
+            wait.until(ExpectedConditions.urlContains("/login"));
+            assertTrue(driver.findElement(By.id("loginForm")).isDisplayed());
+
             signIn();
             wait.until(ExpectedConditions.urlToBe(baseUrl() + "/"));
             assertTrue(driver.findElement(By.tagName("body")).getText().contains("Women Skill Training Portal"));
