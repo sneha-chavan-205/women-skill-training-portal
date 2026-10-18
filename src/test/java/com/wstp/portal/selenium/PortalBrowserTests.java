@@ -164,8 +164,8 @@ class PortalBrowserTests {
             assertTrue(driver.findElement(By.id("loginForm")).isDisplayed());
 
             signIn();
-            wait.until(ExpectedConditions.urlToBe(baseUrl() + "/"));
-            assertTrue(driver.findElement(By.tagName("body")).getText().contains("Women Skill Training Portal"));
+            wait.until(ExpectedConditions.urlToBe(baseUrl() + "/dashboard"));
+            assertTrue(driver.findElement(By.tagName("body")).getText().contains("My Learning"));
         });
     }
 
@@ -173,7 +173,7 @@ class PortalBrowserTests {
     void enrollsTheSignedInLearner() throws Throwable {
         withFailureScreenshot(() -> {
             signIn();
-            wait.until(ExpectedConditions.urlToBe(baseUrl() + "/"));
+            wait.until(ExpectedConditions.urlToBe(baseUrl() + "/dashboard"));
             driver.get(baseUrl() + "/programs/" + programId);
             wait.until(ExpectedConditions.elementToBeClickable(By.id("enrollBtn"))).click();
             WebElement notice = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("enrollNotice")));
