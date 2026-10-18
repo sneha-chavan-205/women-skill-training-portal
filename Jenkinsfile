@@ -105,6 +105,18 @@ pipeline {
                             bat """
                                 "${dockerExe}" build --tag "%APP_IMAGE%" .
                                 if errorlevel 1 exit /b 1
+                                echo ==== Diagnostic: docker compose version ====
+                                "${dockerExe}" compose version
+                                set "COMPOSE_VERSION_EXIT=%ERRORLEVEL%"
+                                if not "%COMPOSE_VERSION_EXIT%"=="0" echo ERROR: docker compose version exited with code %COMPOSE_VERSION_EXIT%.
+                                echo ==== Diagnostic: docker info ====
+                                "${dockerExe}" info
+                                set "DOCKER_INFO_EXIT=%ERRORLEVEL%"
+                                if not "%DOCKER_INFO_EXIT%"=="0" echo ERROR: docker info exited with code %DOCKER_INFO_EXIT%.
+                                echo ==== Diagnostic: docker compose up --help ====
+                                "${dockerExe}" compose up --help
+                                set "COMPOSE_UP_HELP_EXIT=%ERRORLEVEL%"
+                                if not "%COMPOSE_UP_HELP_EXIT%"=="0" echo ERROR: docker compose up --help exited with code %COMPOSE_UP_HELP_EXIT%.
                                 "${dockerExe}" compose up --detach --no-build
                                 if errorlevel 1 exit /b 1
                                 for /L %%i in (1,1,30) do (
