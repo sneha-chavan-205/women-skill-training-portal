@@ -66,27 +66,28 @@ pipeline {
         stage('Docker image and local deployment') {
             steps {
                 script {
-                    def dockerStatus = bat(returnStatus: true, script: '''
+                    def dockerExe = 'C:\\Users\\hp\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+                    def dockerStatus = bat(returnStatus: true, script: """
                         @echo off
                         echo Docker CLI location:
-                        where docker
-                        if errorlevel 1 (
-                            echo ERROR: Docker CLI was not found on the Jenkins agent PATH.
+                        echo ${dockerExe}
+                        if not exist "${dockerExe}" (
+                            echo ERROR: Docker CLI was not found at the configured absolute path.
                             exit /b 1
                         )
                         echo Docker CLI context:
-                        docker context show
+                        "${dockerExe}" context show
                         if errorlevel 1 (
                             echo ERROR: Docker CLI could not read its active context.
                             exit /b 1
                         )
                         echo Checking Docker client and engine:
-                        docker version
+                        "${dockerExe}" version
                         if errorlevel 1 (
                             echo ERROR: Docker CLI is present, but the Docker engine is unavailable to this Jenkins agent.
                             exit /b 1
                         )
-                    ''')
+                    """)
                     if (dockerStatus != 0) {
                         error('Docker is required for this pipeline deployment stage; see the Docker CLI/context diagnostics above.')
                     } else {
@@ -101,19 +102,19 @@ pipeline {
                             "MYSQL_PASSWORD=ci-${env.BUILD_TAG}",
                             "MYSQL_ROOT_PASSWORD=ci-root-${env.BUILD_TAG}"
                         ]) {
-                            bat '''
-                                docker build --tag "%APP_IMAGE%" .
+                            bat """
+                                "${dockerExe}" build --tag "%APP_IMAGE%" .
                                 if errorlevel 1 exit /b 1
-                                docker compose -p "%COMPOSE_PROJECT_NAME%" up --detach --no-build
+                                "${dockerExe}" compose -p "%COMPOSE_PROJECT_NAME%" up --detach --no-build
                                 if errorlevel 1 exit /b 1
                                 for /L %%i in (1,1,30) do (
-                                    docker compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
+                                    "${dockerExe}" compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
                                     if not errorlevel 1 exit /b 0
                                     timeout /t 2 /nobreak >NUL
                                 )
-                                docker compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app
+                                "${dockerExe}" compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app
                                 exit /b 1
-                            '''
+                            """
                         }
                     }
                 }
