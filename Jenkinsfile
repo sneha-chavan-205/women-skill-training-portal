@@ -66,9 +66,29 @@ pipeline {
         stage('Docker image and local deployment') {
             steps {
                 script {
-                    def dockerStatus = bat(returnStatus: true, script: 'docker info >NUL 2>&1')
+                    def dockerStatus = bat(returnStatus: true, script: '''
+                        @echo off
+                        echo Docker CLI location:
+                        where docker
+                        if errorlevel 1 (
+                            echo ERROR: Docker CLI was not found on the Jenkins agent PATH.
+                            exit /b 1
+                        )
+                        echo Docker CLI context:
+                        docker context show
+                        if errorlevel 1 (
+                            echo ERROR: Docker CLI could not read its active context.
+                            exit /b 1
+                        )
+                        echo Checking Docker client and engine:
+                        docker version
+                        if errorlevel 1 (
+                            echo ERROR: Docker CLI is present, but the Docker engine is unavailable to this Jenkins agent.
+                            exit /b 1
+                        )
+                    ''')
                     if (dockerStatus != 0) {
-                        echo 'Docker engine is not accessible to this Jenkins agent; skipping image build and local deployment.'
+                        error('Docker is required for this pipeline deployment stage; see the Docker CLI/context diagnostics above.')
                     } else {
                         def imageTag = "women-skill-training-portal:${env.BUILD_NUMBER}"
                         def composeProject = "wstp-jenkins-${env.BUILD_NUMBER}"
