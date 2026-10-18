@@ -136,58 +136,58 @@ pipeline {
                                 "${composeExe}" up --detach --no-build
                                 if errorlevel 1 exit /b 1
                             """
-                        }
 
-                        def appReady = false
-                        def lastLogExitCode = 0
-                        for (int attempt = 1; attempt <= 30; attempt++) {
-                            def pollOutput = bat(returnStdout: true, script: """
-                                @echo off
-                                "${composeExe}" logs --no-color --tail 200 app 2>&1
-                                set "WSTP_COMPOSE_LOG_EXIT=%ERRORLEVEL%"
-                                echo __WSTP_COMPOSE_LOG_EXIT__=%WSTP_COMPOSE_LOG_EXIT%
-                                exit /b 0
-                            """).trim()
+                            def appReady = false
+                            def lastLogExitCode = 0
+                            for (int attempt = 1; attempt <= 30; attempt++) {
+                                def pollOutput = bat(returnStdout: true, script: """
+                                    @echo off
+                                    "${composeExe}" logs --no-color --tail 200 app 2>&1
+                                    set "WSTP_COMPOSE_LOG_EXIT=%ERRORLEVEL%"
+                                    echo __WSTP_COMPOSE_LOG_EXIT__=%WSTP_COMPOSE_LOG_EXIT%
+                                    exit /b 0
+                                """).trim()
 
-                            def exitMarker = '__WSTP_COMPOSE_LOG_EXIT__='
-                            def exitMarkerIndex = pollOutput.lastIndexOf(exitMarker)
-                            def appLogs = exitMarkerIndex >= 0
-                                ? pollOutput.substring(0, exitMarkerIndex).trim()
-                                : pollOutput
-                            lastLogExitCode = 1
-                            if (exitMarkerIndex >= 0) {
-                                def exitCodeText = pollOutput.substring(exitMarkerIndex + exitMarker.length()).trim()
-                                try {
-                                    lastLogExitCode = Integer.parseInt(exitCodeText)
-                                } catch (NumberFormatException ignored) {
-                                    lastLogExitCode = 1
+                                def exitMarker = '__WSTP_COMPOSE_LOG_EXIT__='
+                                def exitMarkerIndex = pollOutput.lastIndexOf(exitMarker)
+                                def appLogs = exitMarkerIndex >= 0
+                                    ? pollOutput.substring(0, exitMarkerIndex).trim()
+                                    : pollOutput
+                                lastLogExitCode = 1
+                                if (exitMarkerIndex >= 0) {
+                                    def exitCodeText = pollOutput.substring(exitMarkerIndex + exitMarker.length()).trim()
+                                    try {
+                                        lastLogExitCode = Integer.parseInt(exitCodeText)
+                                    } catch (NumberFormatException ignored) {
+                                        lastLogExitCode = 1
+                                    }
+                                }
+
+                                if (lastLogExitCode == 0 && appLogs.contains('Started WomenSkillTrainingPortalApplication')) {
+                                    appReady = true
+                                    break
+                                }
+                                if (attempt < 30) {
+                                    sleep(time: 2, unit: 'SECONDS')
                                 }
                             }
 
-                            if (lastLogExitCode == 0 && appLogs.contains('Started WomenSkillTrainingPortalApplication')) {
-                                appReady = true
-                                break
+                            if (!appReady) {
+                                echo("Application readiness check failed after 30 polls; last Compose app-log exit code: ${lastLogExitCode}.")
+                                bat(returnStatus: true, script: """
+                                    @echo off
+                                    echo ==== Compose service and container status ====
+                                    "${composeExe}" ps --all
+                                    echo ==== Application logs ====
+                                    "${composeExe}" logs --no-color --tail 200 app
+                                    echo ==== Database logs ====
+                                    "${composeExe}" logs --no-color --tail 200 db
+                                    exit /b 0
+                                """)
+                                error('WSTP application did not report successful startup within approximately 60 seconds.')
                             }
-                            if (attempt < 30) {
-                                sleep(time: 2, unit: 'SECONDS')
-                            }
+                            echo('WSTP application reported successful startup.')
                         }
-
-                        if (!appReady) {
-                            echo("Application readiness check failed after 30 polls; last Compose app-log exit code: ${lastLogExitCode}.")
-                            bat(returnStatus: true, script: """
-                                @echo off
-                                echo ==== Compose service and container status ====
-                                "${composeExe}" ps --all
-                                echo ==== Application logs ====
-                                "${composeExe}" logs --no-color --tail 200 app
-                                echo ==== Database logs ====
-                                "${composeExe}" logs --no-color --tail 200 db
-                                exit /b 0
-                            """)
-                            error('WSTP application did not report successful startup within approximately 60 seconds.')
-                        }
-                        echo('WSTP application reported successful startup.')
                     }
                 }
             }
