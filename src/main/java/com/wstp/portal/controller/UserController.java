@@ -1,7 +1,9 @@
 package com.wstp.portal.controller;
 
+import com.wstp.portal.entity.Role;
 import com.wstp.portal.entity.User;
 import com.wstp.portal.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,13 +18,21 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(
+            @Valid @RequestBody UserRegistrationRequest request) {
 
-        if (userService.existsByEmail(user.getEmail())) {
+        if (userService.existsByEmail(request.email())) {
             return ResponseEntity.badRequest()
                     .body("Email already registered");
         }
 
+        Role role = request.role() == null ? Role.LEARNER : request.role();
+        if (role != Role.LEARNER && role != Role.TRAINER) {
+            return ResponseEntity.badRequest()
+                    .body("Public registration only allows LEARNER or TRAINER accounts");
+        }
+
+        User user = new User(request.name(), request.email(), request.password(), role);
         User savedUser = userService.registerUser(user);
 
         return ResponseEntity.ok(new UserResponse(savedUser));
