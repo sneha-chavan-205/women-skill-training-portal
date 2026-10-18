@@ -105,14 +105,14 @@ pipeline {
                             bat """
                                 "${dockerExe}" build --tag "%APP_IMAGE%" .
                                 if errorlevel 1 exit /b 1
-                                "${dockerExe}" compose -p "%COMPOSE_PROJECT_NAME%" up --detach --no-build
+                                "${dockerExe}" compose up --detach --no-build
                                 if errorlevel 1 exit /b 1
                                 for /L %%i in (1,1,30) do (
-                                    "${dockerExe}" compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
+                                    "${dockerExe}" compose logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
                                     if not errorlevel 1 exit /b 0
                                     timeout /t 2 /nobreak >NUL
                                 )
-                                "${dockerExe}" compose -p "%COMPOSE_PROJECT_NAME%" logs --no-color app
+                                "${dockerExe}" compose logs --no-color app
                                 exit /b 1
                             """
                         }
