@@ -67,6 +67,7 @@ pipeline {
             steps {
                 script {
                     def dockerExe = 'C:\\Users\\hp\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+                    def composeExe = 'C:\\Users\\hp\\.docker\\cli-plugins\\docker-compose.exe'
                     def dockerStatus = bat(returnStatus: true, script: """
                         @echo off
                         echo Docker CLI location:
@@ -91,6 +92,25 @@ pipeline {
                     if (dockerStatus != 0) {
                         error('Docker is required for this pipeline deployment stage; see the Docker CLI/context diagnostics above.')
                     } else {
+                        def composeStatus = bat(returnStatus: true, script: """
+                            @echo off
+                            echo Docker Compose executable:
+                            echo ${composeExe}
+                            if not exist "${composeExe}" (
+                                echo ERROR: Docker Compose executable was not found at the configured absolute path.
+                                exit /b 1
+                            )
+                            echo Docker Compose version:
+                            "${composeExe}" version
+                            if errorlevel 1 (
+                                echo ERROR: Docker Compose executable could not report its version.
+                                exit /b 1
+                            )
+                        """)
+                        if (composeStatus != 0) {
+                            error('Docker Compose is required for this pipeline deployment stage; check the executable path and version output above.')
+                        }
+
                         def imageTag = "women-skill-training-portal:${env.BUILD_NUMBER}"
                         def composeProject = "wstp-jenkins-${env.BUILD_NUMBER}"
                         withEnv([
@@ -105,26 +125,22 @@ pipeline {
                             bat """
                                 "${dockerExe}" build --tag "%APP_IMAGE%" .
                                 if errorlevel 1 exit /b 1
-                                echo ==== Diagnostic: docker compose version ====
-                                "${dockerExe}" compose version
-                                set "COMPOSE_VERSION_EXIT=%ERRORLEVEL%"
-                                if not "%COMPOSE_VERSION_EXIT%"=="0" echo ERROR: docker compose version exited with code %COMPOSE_VERSION_EXIT%.
                                 echo ==== Diagnostic: docker info ====
                                 "${dockerExe}" info
                                 set "DOCKER_INFO_EXIT=%ERRORLEVEL%"
                                 if not "%DOCKER_INFO_EXIT%"=="0" echo ERROR: docker info exited with code %DOCKER_INFO_EXIT%.
-                                echo ==== Diagnostic: docker compose up --help ====
-                                "${dockerExe}" compose up --help
+                                echo ==== Diagnostic: Docker Compose up --help ====
+                                "${composeExe}" up --help
                                 set "COMPOSE_UP_HELP_EXIT=%ERRORLEVEL%"
-                                if not "%COMPOSE_UP_HELP_EXIT%"=="0" echo ERROR: docker compose up --help exited with code %COMPOSE_UP_HELP_EXIT%.
-                                "${dockerExe}" compose up --detach --no-build
+                                if not "%COMPOSE_UP_HELP_EXIT%"=="0" echo ERROR: Docker Compose up --help exited with code %COMPOSE_UP_HELP_EXIT%.
+                                "${composeExe}" up --detach --no-build
                                 if errorlevel 1 exit /b 1
                                 for /L %%i in (1,1,30) do (
-                                    "${dockerExe}" compose logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
+                                    "${composeExe}" logs --no-color app | findstr /C:"Started WomenSkillTrainingPortalApplication" >NUL
                                     if not errorlevel 1 exit /b 0
                                     timeout /t 2 /nobreak >NUL
                                 )
-                                "${dockerExe}" compose logs --no-color app
+                                "${composeExe}" logs --no-color app
                                 exit /b 1
                             """
                         }
